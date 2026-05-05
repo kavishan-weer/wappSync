@@ -211,7 +211,7 @@ function BrandLogo() {
         <MessageCircle className="size-6" strokeWidth={2.6} />
       </span>
       <span className="flex flex-col leading-none">
-        <span className="text-xl font-bold tracking-normal text-[var(--text-primary)]">
+        <span className="text-xl font-bold font-heading tracking-normal text-[var(--text-primary)]">
           wappSync
         </span>
         <span className="mt-1 h-1 w-14 rounded-full bg-[var(--brand-primary)]" />
