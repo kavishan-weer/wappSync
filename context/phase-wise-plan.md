@@ -8,22 +8,14 @@ Set up the basic project structure, design system, database foundation, and docu
 
 ### Features
 
-| Feature           | Details                                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------------------- |
-| Project setup     | Create Next.js app                                                                                        |
-| UI setup          | Install shadcn/ui and lucide-react                                                                        |
-| Design tokens     | Add WhatsApp-inspired light theme                                                                         |
-| Supabase setup    | Create Supabase project                                                                                   |
-| Auth setup        | Enable Supabase Auth                                                                                      |
-| Environment setup | Add `.env` structure                                                                                      |
-| Documentation     | Add `architecture.md`, `project-overview.md`, `ai-workflow-rules.md`, `design-system.md`, `ui-context.md` |
+| Feature       | Details                                                                                                   |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Design tokens | Add WhatsApp-inspired light theme                                                                         |
+| Auth setup    | Enable Supabase Auth                                                                                      |
+| Documentation | Add `architecture.md`, `project-overview.md`, `ai-workflow-rules.md`, `design-system.md`, `ui-context.md` |
 
 ### Tasks
 
-- Set up Next.js project
-- Install Tailwind CSS
-- Install shadcn/ui
-- Install `lucide-react`
 - Create dashboard layout
 - Create Supabase client
 - Create base database schema

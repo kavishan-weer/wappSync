@@ -581,6 +581,12 @@ export function LandingPage() {
               View Demo
             </Link>
             <Link
+              href="/login"
+              className="hidden h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-[var(--text-primary)] transition-all hover:bg-[var(--brand-soft)] hover:text-[var(--brand-primary-hover)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--brand-primary)]/25 sm:inline-flex"
+            >
+              Log in
+            </Link>
+            <Link
               href="#pricing"
               className="inline-flex h-11 items-center justify-center rounded-lg bg-[var(--brand-primary)] px-5 text-sm font-bold text-white shadow-[0_14px_28px_rgba(37,211,102,0.28)] transition-all hover:-translate-y-0.5 hover:bg-[var(--brand-primary-hover)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[var(--brand-primary)]/30"
             >
@@ -594,6 +600,12 @@ export function LandingPage() {
                 <Menu className="size-5" />
               </summary>
               <div className="absolute right-0 mt-3 w-56 rounded-lg border border-[var(--border-soft)] bg-white p-2 shadow-[0_20px_50px_rgba(17,27,33,0.14)]">
+                <Link
+                  href="/login"
+                  className="block rounded-lg px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--brand-soft)] hover:text-[var(--text-primary)]"
+                >
+                  Log in
+                </Link>
                 {navLinks.map((link) => (
                   <Link
                     key={link.href}
