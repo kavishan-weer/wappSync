@@ -88,3 +88,56 @@ export type OrderItem = {
   line_total: number;
   products?: Pick<Product, "id" | "name">;
 };
+
+// ── Phase 4: WhatsApp types ──────────────────────────────────────
+
+export type WhatsAppAccount = {
+  id: string;
+  shop_id: string;
+  phone_number_id: string;
+  waba_id: string | null;
+  access_token: string;
+  verify_token: string;
+  display_phone: string | null;
+  is_connected: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ConversationStatus =
+  | "active"
+  | "needs_attention"
+  | "resolved"
+  | "closed";
+
+export type Conversation = {
+  id: string;
+  shop_id: string;
+  customer_phone: string;
+  customer_name: string | null;
+  status: ConversationStatus;
+  automation_paused: boolean;
+  last_message_at: string | null;
+  last_message_preview: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type MessageDirection = "inbound" | "outbound";
+
+export type MessageStatus = "sent" | "delivered" | "read" | "failed";
+
+export type SenderType = "customer" | "ai" | "owner";
+
+export type Message = {
+  id: string;
+  shop_id: string;
+  conversation_id: string;
+  direction: MessageDirection;
+  content: string;
+  wa_message_id: string | null;
+  status: MessageStatus;
+  sender_type: SenderType;
+  created_at: string;
+};
+

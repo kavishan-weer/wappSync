@@ -30,6 +30,13 @@ export async function getOwnerShop(supabase: SupabaseClient, ownerId: string) {
     .maybeSingle();
 
   if (error) {
+    if (
+      error.message.includes("public.shops") ||
+      error.message.includes("schema cache")
+    ) {
+      redirect("/dashboard/setup-required");
+    }
+
     throw new Error(error.message);
   }
 

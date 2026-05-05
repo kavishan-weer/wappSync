@@ -5,12 +5,14 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Smartphone,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Inbox", href: "/dashboard", icon: Inbox },
+  { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
   { label: "Products", href: "/dashboard/products", icon: Package },
   { label: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
+  { label: "WhatsApp", href: "/dashboard/settings/whatsapp", icon: Smartphone },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -20,7 +22,7 @@ export function DashboardShell({
   shopName,
 }: {
   children: React.ReactNode;
-  active: "dashboard" | "products" | "orders" | "settings";
+  active: "dashboard" | "inbox" | "products" | "orders" | "settings" | "whatsapp";
   shopName?: string;
 }) {
   return (

@@ -5,11 +5,11 @@ change.
 
 ## Current Phase
 
-- In progress
+- Phase 6 complete
 
 ## Current Goal
 
-- Implement Phases 1-3: shop setup, product management, and manual order management
+- Phase 7 — RAG for Policies and FAQ
 
 ## Completed
 
@@ -52,6 +52,41 @@ change.
   - Added manual order list, create, detail, and status update routes
   - Added customer reuse by shop phone number
   - Added atomic manual order creation database function with stock validation and stock deduction
+- Phase 4 — WhatsApp Cloud API Integration
+  - Added database migration `0003_phase4_whatsapp.sql` with `whatsapp_accounts`, `conversations`, and `messages` tables, RLS policies, indexes, and triggers
+  - Added `lib/whatsapp/types.ts` — TypeScript types for Meta webhook payloads and send operations
+  - Added `lib/whatsapp/webhook.ts` — parser for inbound text messages and status updates from Meta
+  - Added `lib/whatsapp/client.ts` — Meta Cloud API client for sending text messages and verifying connections
+  - Added `lib/whatsapp/send.ts` — high-level send function that sends via Meta API and stores outbound message in DB
+  - Added `app/api/whatsapp/webhook/route.ts` — GET for Meta verification, POST for inbound message handling with shop identification by phone_number_id
+  - Added `app/dashboard/settings/whatsapp/page.tsx` — WhatsApp settings page with credential form, connection status, test button, and webhook setup guide
+  - Added `app/dashboard/settings/whatsapp/actions.ts` — server actions for saving config and testing connection
+  - Added `app/dashboard/settings/whatsapp/test-connection.tsx` — client component for test connection button with visual feedback
+  - Added service role Supabase client in `lib/supabase/server.ts` for webhook writes
+  - Added `WhatsAppAccount`, `Conversation`, `Message`, and related types to `lib/db/types.ts`
+  - Added WhatsApp nav item to dashboard sidebar
+  - Updated `.env.example` with `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL`
+  - Verified production build: all routes compile, webhook route registered as dynamic
+- Phase 5 — Dashboard Inbox
+  - Added `app/dashboard/inbox/page.tsx` — full inbox page with conversation sidebar (filters, status badges, conversation list) and chat view (message thread, reply composer, controls)
+  - Added `app/dashboard/inbox/actions.ts` — server actions for sending replies, toggling automation pause/resume, and updating conversation status
+  - Added `app/dashboard/inbox/reply-composer.tsx` — client component for reply input with Enter-to-send and form reset
+  - Added `app/dashboard/inbox/inbox-client.tsx` — client components for conversation controls (Pause AI / Resume AI / Resolve / Reopen) and WhatsApp-style message thread with sender type indicators
+  - Updated `components/dashboard/dashboard-shell.tsx` — changed Inbox nav to `/dashboard/inbox`, added `inbox` to active type union
+  - Inbox features: filter by All / Active / Needs attention / AI paused, conversation status badges, message thread with customer/AI/owner labels, pause/resume automation per conversation, resolve/reopen actions
+  - Verified production build: `/dashboard/inbox` registered as dynamic route
+- Phase 6 — Basic AI Message Handling
+  - Added `lib/ai/types.ts` — type definitions for Intent, ClassificationResult, AIDecision, ProductContext
+  - Added `lib/ai/prompts.ts` — system prompts for intent classification and response generation, plus context formatters for products and orders
+  - Added `lib/ai/classify.ts` — intent classifier using Groq API with llama-3.3-70b-versatile model, JSON structured output, graceful fallback
+  - Added `lib/ai/respond.ts` — response generator using Groq API, produces friendly WhatsApp-style replies based on intent and context
+  - Added `lib/ai/handler.ts` — AI orchestrator: classifies intent → fetches relevant DB data (products/orders) → generates response → decides escalation
+  - Updated `app/api/whatsapp/webhook/route.ts` — webhook now triggers AI auto-reply after storing inbound messages, respects automation_paused, marks conversations as needs_attention on escalation
+  - Updated `.env.example` with `GROQ_API_KEY`
+  - Supported intents: greeting, product_question (searches product catalog), order_status (looks up customer orders by phone), order_creation (placeholder for Phase 8), policy_question (escalates to owner, RAG in Phase 7), unknown (escalates)
+  - AI respects conversation automation_paused flag and skips auto-reply when paused
+  - On escalation, conversation is automatically marked as needs_attention and automation is paused
+  - Verified production build: all AI library files compile, webhook route updated
 
 ## In Progress
 
@@ -59,16 +94,25 @@ change.
 
 ## Next Up
 
-- [First unit to build]
+- Phase 7 — RAG for Policies and FAQ: PDF upload, text extraction, chunking, embeddings, vector search, RAG-enhanced AI responses
 
 ## Open Questions
 
-- [Any unresolved product or technical decisions]
+- Owner needs to add `GROQ_API_KEY` to `.env.local` (get it from https://console.groq.com)
+- Owner needs to add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for the webhook to work (get it from Supabase Dashboard → Settings → API)
+- Owner needs to run migration `0003_phase4_whatsapp.sql` in Supabase SQL Editor before using WhatsApp features
+- For production, the app needs a public URL (e.g. via ngrok or deployment) for Meta to reach the webhook
 
 ## Architecture Decisions
 
-- [Decisions made that affect the system design or
-  data model — include why the decision was made]
+- Webhook route uses a **service role Supabase client** to bypass RLS, since Meta webhook calls have no user session. This is safe because the webhook validates payloads by matching `phone_number_id` to a registered shop.
+- Conversations are identified by `(shop_id, customer_phone)` unique constraint — one thread per customer per shop. This matches the WhatsApp model.
+- Access tokens are stored in the `whatsapp_accounts` table. For MVP this is acceptable since Supabase encrypts data at rest. A dedicated secrets manager would be a V2 improvement.
+- Status updates from Meta (sent/delivered/read) update the `messages.status` field by matching on `wa_message_id`.
+- AI uses **Groq with llama-3.3-70b-versatile** for both classification and response generation. Classification uses JSON structured output with low temperature (0.1) for determinism; response generation uses moderate temperature (0.6) for natural language.
+- AI **never invents product data** — it only responds based on structured data fetched from the database. If no products match, it says so clearly.
+- On low confidence or unknown intent, the AI **auto-escalates**: sends a polite holding message, marks the conversation as `needs_attention`, and pauses automation. Owner must resolve from the dashboard.
+- Policy questions escalate immediately since RAG is not yet implemented (Phase 7).
 
 ## Session Notes
 
@@ -83,3 +127,7 @@ change.
 - Phases 1-3 build passed with network access enabled for Google font fetching.
 - Local route checks used `next start -- --port 3004`: `/login` returned 200, `/dashboard` redirected to login, and `/dashboard/products` redirected to login for unauthenticated requests.
 - Authenticated shop/product/order CRUD requires applying Supabase migrations and using real `.env.local` Supabase values.
+- Added `/dashboard/setup-required` fallback for missing Supabase schema cache errors so an authenticated owner sees migration instructions instead of a raw 500 when `public.shops` has not been applied.
+- Phase 4 build passed. All new routes compile. Webhook registered as dynamic at `/api/whatsapp/webhook`. WhatsApp settings page accessible at `/dashboard/settings/whatsapp`.
+- Phase 5 build passed. Inbox page at `/dashboard/inbox` registered as dynamic. Sidebar Inbox link updated. Four filter tabs, conversation sidebar with status badges, WhatsApp-style message thread, reply composer with Enter-to-send, pause/resume AI and resolve/reopen conversation controls all compile and render.
+- Phase 6 build passed. AI library (`lib/ai/`) compiles with all 4 modules. Webhook route updated to trigger AI auto-reply. Groq integration uses llama-3.3-70b-versatile for classification and response generation.
