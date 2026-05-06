@@ -15,6 +15,8 @@ const GREETING_REPLIES = [
   "Hey! 👋 Thanks for reaching out. How can I assist you?",
 ];
 
+const DOCUMENT_SEARCH_THRESHOLD = 0.35;
+
 /**
  * Handle an inbound message with AI.
  *
@@ -99,13 +101,13 @@ export async function handleInboundMessage(
 
     case "unknown":
     default:
-      return {
-        intent: "unknown",
-        confidence: "low",
-        reply: ESCALATION_MESSAGE,
-        shouldEscalate: true,
-        reasoning: `Could not classify intent. Confidence: ${classification.confidence}`,
-      };
+      return handleUnknownMessage(
+        supabase,
+        shopId,
+        shopName,
+        message,
+        classification.confidence,
+      );
   }
 }
 
@@ -239,7 +241,13 @@ async function handlePolicyQuestion(
   confidence: "high" | "medium" | "low",
 ): Promise<AIDecision> {
   // Search for relevant document chunks
-  const results = await searchDocuments(supabase, shopId, message, 5, 0.5);
+  const results = await searchDocuments(
+    supabase,
+    shopId,
+    message,
+    5,
+    DOCUMENT_SEARCH_THRESHOLD,
+  );
 
   if (results.length === 0) {
     // No documents found — escalate to owner
@@ -263,5 +271,45 @@ async function handlePolicyQuestion(
     reply,
     shouldEscalate: false,
     reasoning: `RAG search returned ${results.length} relevant chunks. Top similarity: ${Math.round(results[0].similarity * 100)}%`,
+  };
+}
+
+/**
+ * For unclear messages, try uploaded knowledge before escalating.
+ */
+async function handleUnknownMessage(
+  supabase: SupabaseClient,
+  shopId: string,
+  shopName: string,
+  message: string,
+  confidence: "high" | "medium" | "low",
+): Promise<AIDecision> {
+  const results = await searchDocuments(
+    supabase,
+    shopId,
+    message,
+    5,
+    DOCUMENT_SEARCH_THRESHOLD,
+  );
+
+  if (results.length > 0) {
+    const context = formatRAGContext(results);
+    const reply = await generateReply(shopName, context, message, "policy_question");
+
+    return {
+      intent: "policy_question",
+      confidence,
+      reply,
+      shouldEscalate: false,
+      reasoning: `Unknown intent answered from uploaded knowledge. RAG returned ${results.length} chunks. Top similarity: ${Math.round(results[0].similarity * 100)}%`,
+    };
+  }
+
+  return {
+    intent: "unknown",
+    confidence: "low",
+    reply: ESCALATION_MESSAGE,
+    shouldEscalate: true,
+    reasoning: `Could not classify intent and no uploaded knowledge matched. Confidence: ${confidence}`,
   };
 }

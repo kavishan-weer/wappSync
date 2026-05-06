@@ -3,6 +3,22 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { chunkText } from "./chunker";
 import { generateEmbeddings } from "./embeddings";
 
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  // pdf-parse v2 relies on pdf.js DOM geometry globals even for text parsing.
+  // The worker shim installs DOMMatrix/Path2D/ImageData for Node runtimes.
+  await import("pdf-parse/worker");
+
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+
+  try {
+    const result = await parser.getText({ pageJoiner: "\n\n" });
+    return result.text;
+  } finally {
+    await parser.destroy();
+  }
+}
+
 /**
  * Process an uploaded PDF document:
  * 1. Download from Supabase Storage
@@ -41,10 +57,7 @@ export async function processDocument(
 
     // 2. Extract text from PDF
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse");
-    const pdf = await pdfParse(buffer);
-    const text = pdf.text;
+    const text = await extractPdfText(buffer);
 
     if (!text || text.trim().length < 20) {
       throw new Error("PDF contains no extractable text");

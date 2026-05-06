@@ -90,7 +90,7 @@ change.
 - Phase 7 — RAG for Policies and FAQ
   - Added `supabase/migrations/0004_phase7_rag.sql` — pgvector extension, `documents` and `document_chunks` tables, IVFFlat index, `search_document_chunks` RPC function, RLS policies
   - Added `lib/rag/chunker.ts` — text chunking with paragraph/sentence boundary splitting and configurable overlap
-  - Added `lib/rag/embeddings.ts` — OpenAI embedding generation (text-embedding-3-small) with single and batch support
+  - Added `lib/rag/embeddings.ts` — Google Gemini embedding generation (gemini-embedding-001, 768 dims, free tier) with single and batch support
   - Added `lib/rag/search.ts` — vector similarity search via Supabase RPC, context formatting for AI
   - Added `lib/rag/process.ts` — full PDF processing pipeline: download from Storage → extract text → chunk → embed → store
   - Added `app/dashboard/documents/page.tsx` — document upload UI with status indicators, retry/delete actions, file size display
@@ -98,9 +98,16 @@ change.
   - Updated `lib/ai/handler.ts` — policy_question now uses RAG: searches document chunks via vector similarity, generates AI response from retrieved context, escalates only if no relevant documents found
   - Added "AI Knowledge" nav item to dashboard sidebar
   - Added `Document` and `DocumentChunk` types to `lib/db/types.ts`
-  - Updated `.env.example` with `OPENAI_API_KEY`
-  - Installed `pdf-parse` and `openai` npm packages
+  - Updated `.env.example` with `GEMINI_API_KEY`
+  - Installed `pdf-parse` and `@google/genai` npm packages (removed `openai` dependency)
   - Verified production build: `/dashboard/documents` registered as dynamic route
+- Document upload reliability fix
+  - Added Next server action body limit configuration so the 10 MB PDF upload UI is accepted by the server action request parser
+  - Added migration `0005_phase7_documents_storage.sql` to create the private `documents` Supabase Storage bucket with owner-scoped upload/read/update/delete policies
+  - Replaced the document upload box with a client upload form that displays the selected PDF, disables upload until a file is selected, and shows upload errors/success messages inline
+  - Updated PDF text extraction to use `pdf-parse` v2 with its Node worker shim so server-side processing has the required DOM geometry globals
+  - Explicitly set Gemini embedding output dimensionality to 768 so generated vectors match the `document_chunks.embedding` pgvector column
+  - Improved uploaded-knowledge answering by classifying FAQ/document questions more broadly and trying RAG before escalating unknown messages
 
 ## In Progress
 
@@ -112,9 +119,9 @@ change.
 
 ## Open Questions
 
-- Owner needs to add `OPENAI_API_KEY` to `.env.local` for RAG embeddings (get it from https://platform.openai.com)
+- Owner needs to add `GEMINI_API_KEY` to `.env.local` for RAG embeddings (get it free from https://aistudio.google.com/apikey)
 - Owner needs to run migration `0004_phase7_rag.sql` in Supabase SQL Editor to enable pgvector and create document tables
-- Owner needs to create a `documents` storage bucket in Supabase Dashboard → Storage (public or private)
+- Owner needs to run migration `0005_phase7_documents_storage.sql` in Supabase SQL Editor to create the `documents` storage bucket and storage policies
 - Owner needs to add `GROQ_API_KEY` to `.env.local` (get it from https://console.groq.com)
 - Owner needs to add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for the webhook to work (get it from Supabase Dashboard → Settings → API)
 - Owner needs to run migration `0003_phase4_whatsapp.sql` in Supabase SQL Editor before using WhatsApp features
@@ -130,9 +137,10 @@ change.
 - AI **never invents product data** — it only responds based on structured data fetched from the database. If no products match, it says so clearly.
 - On low confidence or unknown intent, the AI **auto-escalates**: sends a polite holding message, marks the conversation as `needs_attention`, and pauses automation. Owner must resolve from the dashboard.
 - Policy questions now use **RAG with pgvector** instead of auto-escalating. The AI searches uploaded document chunks by cosine similarity, retrieves the top 5 matches above 0.5 threshold, and generates a response from retrieved context. Only escalates if no relevant documents are found.
-- Embeddings use **OpenAI text-embedding-3-small** (1536 dimensions) for cost efficiency. The IVFFlat index on pgvector provides fast approximate nearest neighbor search.
+- Embeddings use **Google Gemini gemini-embedding-001** (768 dimensions) — completely free with generous rate limits. Uses RETRIEVAL_QUERY task type for search queries and RETRIEVAL_DOCUMENT for document chunks. The IVFFlat index on pgvector provides fast approximate nearest neighbor search.
 - PDF processing is synchronous in MVP (runs during the upload request). For production, this should be moved to a background job/queue.
 - Document chunks use **800-character chunks with 150-character overlap** to balance context quality and embedding accuracy.
+- Document uploads use a private Supabase Storage bucket named `documents`. Object paths start with the owning `shop_id`, and storage policies enforce that only the owner of that shop can manage those files.
 
 ## Session Notes
 
@@ -151,4 +159,4 @@ change.
 - Phase 4 build passed. All new routes compile. Webhook registered as dynamic at `/api/whatsapp/webhook`. WhatsApp settings page accessible at `/dashboard/settings/whatsapp`.
 - Phase 5 build passed. Inbox page at `/dashboard/inbox` registered as dynamic. Sidebar Inbox link updated. Four filter tabs, conversation sidebar with status badges, WhatsApp-style message thread, reply composer with Enter-to-send, pause/resume AI and resolve/reopen conversation controls all compile and render.
 - Phase 6 build passed. AI library (`lib/ai/`) compiles with all 4 modules. Webhook route updated to trigger AI auto-reply. Groq integration uses llama-3.3-70b-versatile for classification and response generation.
-- Phase 7 build passed. RAG library (`lib/rag/`) compiles with all 4 modules. Documents page at `/dashboard/documents` registered as dynamic. AI handler updated with RAG-powered policy question handling. Installed pdf-parse and openai packages.
+- Phase 7 build passed. RAG library (`lib/rag/`) compiles with all 4 modules. Documents page at `/dashboard/documents` registered as dynamic. AI handler updated with RAG-powered policy question handling. Switched from OpenAI to Google Gemini embeddings (gemini-embedding-001, 768 dims, free). Installed @google/genai, removed openai package.

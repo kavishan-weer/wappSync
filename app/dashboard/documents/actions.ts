@@ -6,30 +6,47 @@ import { requireShop } from "@/lib/auth/dashboard";
 import { createServiceClient } from "@/lib/supabase/server";
 import { processDocument } from "@/lib/rag/process";
 
+export type UploadDocumentState = {
+  status: "idle" | "success" | "error";
+  message: string;
+};
+
+function uploadErrorState(message: string): UploadDocumentState {
+  return { status: "error", message };
+}
+
 /**
  * Upload a PDF document and trigger processing.
  */
-export async function uploadDocument(formData: FormData) {
+export async function uploadDocument(
+  _previousState: UploadDocumentState,
+  formData: FormData,
+): Promise<UploadDocumentState> {
   const { supabase, shop } = await requireShop();
 
   const file = formData.get("file") as File | null;
 
   if (!file || file.size === 0) {
-    throw new Error("Please select a PDF file to upload.");
+    return uploadErrorState("Please select a PDF file to upload.");
   }
 
-  if (!file.type.includes("pdf")) {
-    throw new Error("Only PDF files are supported.");
+  const isPdf =
+    file.type === "application/pdf" ||
+    file.name.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf) {
+    return uploadErrorState("Only PDF files are supported.");
   }
 
   if (file.size > 10 * 1024 * 1024) {
-    throw new Error("File size must be under 10 MB.");
+    return uploadErrorState("File size must be under 10 MB.");
   }
 
   const fileName = `${shop.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
 
-  // Upload to Supabase Storage
-  const { error: uploadError } = await supabase.storage
+  // Upload to Supabase Storage using service role to bypass storage RLS
+  const serviceClient = createServiceClient();
+  const { error: uploadError } = await serviceClient.storage
     .from("documents")
     .upload(fileName, file, {
       contentType: "application/pdf",
@@ -37,7 +54,10 @@ export async function uploadDocument(formData: FormData) {
     });
 
   if (uploadError) {
-    throw new Error(`Upload failed: ${uploadError.message}`);
+    return {
+      status: "error",
+      message: `Upload failed: ${uploadError.message}`,
+    };
   }
 
   // Create document record
@@ -54,11 +74,10 @@ export async function uploadDocument(formData: FormData) {
     .single();
 
   if (docError) {
-    throw new Error(docError.message);
+    return uploadErrorState(docError.message);
   }
 
-  // Trigger processing (uses service role for embedding writes)
-  const serviceClient = createServiceClient();
+  // Trigger processing (reuses service role client from above)
 
   // Process async — don't await to avoid timeout, but for MVP we'll await
   try {
@@ -68,6 +87,11 @@ export async function uploadDocument(formData: FormData) {
   }
 
   revalidatePath("/dashboard/documents");
+
+  return {
+    status: "success",
+    message: `${file.name} uploaded. Processing has started.`,
+  };
 }
 
 /**

@@ -9,7 +9,7 @@ Given a customer message, classify the intent into exactly one category and extr
 
 Categories:
 - product_question: Customer asks about a product (price, availability, details, what do you sell)
-- policy_question: Customer asks about shop policies (returns, delivery, warranty, payment methods)
+- policy_question: Customer asks about shop policies, FAQs, uploaded knowledge, delivery, returns, warranty, payment methods, size guides, care instructions, materials, store rules, or general business information
 - order_status: Customer asks about an existing order status (where is my order, order update)
 - order_creation: Customer wants to buy or place an order (I want to buy, add to cart, order this)
 - greeting: Customer sends a greeting or simple hello/hi
@@ -20,6 +20,7 @@ Respond ONLY with valid JSON in this exact format:
 
 Rules:
 - If the message mentions a specific product name, extract it in extractedQuery
+- If the message asks something that could be answered from shop FAQ, policy, or uploaded knowledge documents, use policy_question
 - If confidence is low, set intent to "unknown"
 - Do not guess or invent information
 - Be conservative: if unsure, use "unknown" with "low" confidence`;

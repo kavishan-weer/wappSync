@@ -1,37 +1,54 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
-const EMBEDDING_MODEL = "text-embedding-3-small";
+const EMBEDDING_MODEL = "gemini-embedding-001";
+const EMBEDDING_DIMENSIONS = 768;
 
-let openaiClient: OpenAI | null = null;
+let genaiClient: GoogleGenAI | null = null;
 
-function getClient(): OpenAI {
-  if (!openaiClient) {
-    const apiKey = process.env.OPENAI_API_KEY;
+function getClient(): GoogleGenAI {
+  if (!genaiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      throw new Error("OPENAI_API_KEY is not set");
+      throw new Error("GEMINI_API_KEY is not set");
     }
-    openaiClient = new OpenAI({ apiKey });
+    genaiClient = new GoogleGenAI({ apiKey });
   }
-  return openaiClient;
+  return genaiClient;
 }
 
 /**
  * Generate an embedding vector for a single text string.
+ * Uses Google Gemini embedding model (768 dimensions).
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   const client = getClient();
 
-  const response = await client.embeddings.create({
+  const response = await client.models.embedContent({
     model: EMBEDDING_MODEL,
-    input: text.replace(/\n/g, " ").trim(),
+    contents: text.replace(/\n/g, " ").trim(),
+    config: {
+      taskType: "RETRIEVAL_QUERY",
+      outputDimensionality: EMBEDDING_DIMENSIONS,
+    },
   });
 
-  return response.data[0].embedding;
+  const embedding = response.embeddings?.[0]?.values;
+  if (!embedding) {
+    throw new Error("No embedding returned from Google API");
+  }
+
+  if (embedding.length !== EMBEDDING_DIMENSIONS) {
+    throw new Error(
+      `Expected ${EMBEDDING_DIMENSIONS} embedding dimensions, got ${embedding.length}`,
+    );
+  }
+
+  return embedding;
 }
 
 /**
  * Generate embeddings for multiple text strings in batch.
- * OpenAI supports batching up to 2048 inputs.
+ * Google API supports batching via the contents array.
  */
 export async function generateEmbeddings(
   texts: string[],
@@ -40,12 +57,41 @@ export async function generateEmbeddings(
 
   const client = getClient();
 
-  const response = await client.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: texts.map((t) => t.replace(/\n/g, " ").trim()),
-  });
+  // Process in batches of 100 (Google API limit)
+  const BATCH_SIZE = 100;
+  const allEmbeddings: number[][] = [];
 
-  return response.data
-    .sort((a, b) => a.index - b.index)
-    .map((d) => d.embedding);
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+
+    const response = await client.models.embedContent({
+      model: EMBEDDING_MODEL,
+      contents: batch.map((t) => t.replace(/\n/g, " ").trim()),
+      config: {
+        taskType: "RETRIEVAL_DOCUMENT",
+        outputDimensionality: EMBEDDING_DIMENSIONS,
+      },
+    });
+
+    const embeddings = response.embeddings;
+    if (!embeddings || embeddings.length !== batch.length) {
+      throw new Error(
+        `Expected ${batch.length} embeddings, got ${embeddings?.length ?? 0}`,
+      );
+    }
+
+    for (const emb of embeddings) {
+      if (!emb.values) {
+        throw new Error("Empty embedding values from Google API");
+      }
+      if (emb.values.length !== EMBEDDING_DIMENSIONS) {
+        throw new Error(
+          `Expected ${EMBEDDING_DIMENSIONS} embedding dimensions, got ${emb.values.length}`,
+        );
+      }
+      allEmbeddings.push(emb.values);
+    }
+  }
+
+  return allEmbeddings;
 }

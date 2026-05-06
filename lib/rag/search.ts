@@ -40,7 +40,15 @@ export async function searchDocuments(
       return [];
     }
 
-    return (data ?? []) as SearchResult[];
+    const results = (data ?? []) as SearchResult[];
+    const topSimilarity =
+      results.length > 0 ? Math.round(results[0].similarity * 100) : 0;
+
+    console.log(
+      `[rag] Search returned ${results.length} chunks for shop ${shopId}. Top similarity: ${topSimilarity}%`,
+    );
+
+    return results;
   } catch (err) {
     console.error("[rag] Search failed:", err);
     return [];

@@ -6,7 +6,6 @@ import {
   Loader2,
   RefreshCw,
   Trash2,
-  Upload,
   UploadCloud,
   Database,
   BrainCircuit
@@ -15,12 +14,12 @@ import {
 import {
   DashboardHeader,
   DashboardShell,
-  SubmitButton,
 } from "@/components/dashboard/dashboard-shell";
 import { requireShop } from "@/lib/auth/dashboard";
 import type { Document } from "@/lib/db/types";
 
-import { deleteDocument, reprocessDocument, uploadDocument } from "./actions";
+import { deleteDocument, reprocessDocument } from "./actions";
+import { DocumentUploadForm } from "./document-upload-form";
 
 function statusDisplay(status: string) {
   switch (status) {
@@ -188,33 +187,7 @@ export default async function DocumentsPage() {
               Add new knowledge to your AI assistant.
             </p>
             
-            <form action={uploadDocument} className="mt-5">
-              <div className="relative group cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-[#D1D7DB] bg-[#F5F7F9] transition-all hover:border-[#25D366] hover:bg-[#E6F9F0]">
-                <input
-                  type="file"
-                  name="file"
-                  accept=".pdf,application/pdf"
-                  required
-                  className="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer"
-                  title="Click to select a file"
-                />
-                <div className="pointer-events-none p-8 text-center">
-                  <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-white shadow-sm transition-transform group-hover:scale-110 group-hover:text-[#25D366]">
-                    <Upload className="size-5 text-[#8696A0] group-hover:text-[#25D366]" />
-                  </div>
-                  <p className="mt-4 text-sm font-bold text-[#111B21] group-hover:text-[#1DA851]">
-                    Click to browse or drag & drop
-                  </p>
-                  <p className="mt-1 text-xs text-[#8696A0]">
-                    Only PDF files. Max 10 MB.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <SubmitButton>Upload & Process</SubmitButton>
-              </div>
-            </form>
+            <DocumentUploadForm />
           </div>
 
           {/* AI Info Card */}

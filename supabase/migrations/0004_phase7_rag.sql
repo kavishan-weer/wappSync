@@ -26,7 +26,7 @@ create table if not exists public.document_chunks (
   document_id uuid not null references public.documents(id) on delete cascade,
   content text not null,
   chunk_index integer not null default 0,
-  embedding extensions.vector(1536),
+  embedding extensions.vector(768),
   created_at timestamptz not null default now()
 );
 
@@ -39,7 +39,7 @@ create index if not exists document_chunks_shop_id_idx
   on public.document_chunks(shop_id);
 
 -- Vector similarity search index (IVFFlat for performance)
--- Using cosine distance for OpenAI embeddings
+-- Using cosine distance for Google Gemini embeddings
 create index if not exists document_chunks_embedding_idx
   on public.document_chunks
   using ivfflat (embedding extensions.vector_cosine_ops)
@@ -91,7 +91,7 @@ create trigger set_documents_updated_at
 -- Vector search function for RAG
 create or replace function public.search_document_chunks(
   p_shop_id uuid,
-  p_query_embedding extensions.vector(1536),
+  p_query_embedding extensions.vector(768),
   p_match_count integer default 5,
   p_match_threshold float default 0.7
 )
