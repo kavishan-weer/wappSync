@@ -46,10 +46,15 @@ export function DashboardShell({
           <nav className="mt-8 space-y-2" aria-label="Dashboard navigation">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                active === "dashboard"
-                  ? item.href === "/dashboard"
-                  : item.href.includes(active);
+              let isActive = false;
+              
+              if (active === "dashboard") {
+                isActive = item.href === "/dashboard";
+              } else if (active === "whatsapp") {
+                isActive = item.href === "/dashboard/settings/whatsapp";
+              } else {
+                isActive = item.href === `/dashboard/${active}`;
+              }
 
               return (
                 <Link
