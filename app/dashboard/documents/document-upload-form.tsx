@@ -43,8 +43,10 @@ export function DocumentUploadForm() {
 
   useEffect(() => {
     if (state.status === "success") {
-      setSelectedFile(null);
-      formRef.current?.reset();
+      queueMicrotask(() => {
+        setSelectedFile(null);
+        formRef.current?.reset();
+      });
     }
   }, [state.status]);
 

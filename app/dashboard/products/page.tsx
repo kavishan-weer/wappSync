@@ -9,11 +9,13 @@ import {
   Box,
   Image as ImageIcon,
 } from "lucide-react";
-import Image from "next/image";
 
 import {
+  DashboardBadge,
   DashboardHeader,
   DashboardShell,
+  EmptyState,
+  PrimaryLink,
 } from "@/components/dashboard/dashboard-shell";
 import { requireShop } from "@/lib/auth/dashboard";
 import type { Product } from "@/lib/db/types";
@@ -53,16 +55,13 @@ export default async function ProductsPage({
         title="Product Catalog"
         description="Create, search, edit, and manage products with stock tracked under your shop."
       >
-        <Link
-          href="/dashboard/products/new"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,211,102,0.3)] transition hover:bg-[#1DA851] hover:shadow-[0_6px_16px_rgba(37,211,102,0.4)]"
-        >
+        <PrimaryLink href="/dashboard/products/new">
           <Plus className="size-4" /> Add Product
-        </Link>
+        </PrimaryLink>
       </DashboardHeader>
 
       {/* Search Bar */}
-      <form className="mt-6">
+      <form>
         <div className="relative flex max-w-md items-center">
           <Search className="absolute left-3 size-5 text-[#8696A0]" />
           <input
@@ -82,27 +81,24 @@ export default async function ProductsPage({
       </form>
 
       {/* Products Grid */}
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.length === 0 ? (
-          <section className="col-span-full rounded-2xl border border-[#E0E6EA] bg-white p-12 text-center shadow-[0_14px_34px_rgba(17,27,33,0.05)]">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#F0F2F5]">
-              <Package className="size-8 text-[#8696A0]" />
-            </div>
-            <h2 className="mt-4 text-xl font-bold text-[#111B21]">No products found</h2>
-            <p className="mt-2 text-sm text-[#667781]">
-              {query
+          <EmptyState
+            icon={Package}
+            title="No products found"
+            description={
+              query
                 ? `No products match "${query}". Try a different search term.`
-                : "Add your first product to start building your catalog."}
-            </p>
+                : "Add your first product to start building your catalog."
+            }
+            className="col-span-full"
+          >
             {!query && (
-              <Link
-                href="/dashboard/products/new"
-                className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,211,102,0.3)] transition hover:bg-[#1DA851]"
-              >
+              <PrimaryLink href="/dashboard/products/new">
                 <Plus className="size-4" /> Create Product
-              </Link>
+              </PrimaryLink>
             )}
-          </section>
+          </EmptyState>
         ) : (
           products.map((product) => {
             const imageUrl =
@@ -118,6 +114,8 @@ export default async function ProductsPage({
                 {/* Image Area */}
                 <div className="relative aspect-[4/3] w-full bg-[#F0F2F5]">
                   {imageUrl ? (
+                    // Product images can come from a shop-owned Supabase Storage URL that is not known at build time.
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={imageUrl}
                       alt={product.name}
@@ -131,15 +129,15 @@ export default async function ProductsPage({
                   {/* Status Badge */}
                   <div className="absolute right-3 top-3">
                     {product.status === "active" ? (
-                      <span className="flex items-center gap-1.5 rounded-full bg-[#E6F9F0] px-2.5 py-1 text-xs font-bold text-[#1DA851] shadow-sm backdrop-blur-md">
+                      <DashboardBadge tone="green" className="shadow-sm backdrop-blur-md">
                         <span className="size-1.5 rounded-full bg-[#1DA851]" />
                         Active
-                      </span>
+                      </DashboardBadge>
                     ) : (
-                      <span className="flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-[#667781] shadow-sm backdrop-blur-md">
+                      <DashboardBadge tone="neutral" className="bg-white/90 shadow-sm backdrop-blur-md">
                         <span className="size-1.5 rounded-full bg-[#667781]" />
                         Inactive
-                      </span>
+                      </DashboardBadge>
                     )}
                   </div>
                 </div>

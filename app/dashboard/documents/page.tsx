@@ -12,8 +12,11 @@ import {
 } from "lucide-react";
 
 import {
+  DashboardCard,
+  DashboardCardHeader,
   DashboardHeader,
   DashboardShell,
+  EmptyState,
 } from "@/components/dashboard/dashboard-shell";
 import { requireShop } from "@/lib/auth/dashboard";
 import type { Document } from "@/lib/db/types";
@@ -75,39 +78,34 @@ export default async function DocumentsPage() {
         description="Upload policy PDFs, FAQ documents, or any business information to train your AI assistant."
       />
 
-      <div className="mt-8 grid gap-8 xl:grid-cols-[1fr_360px]">
-        <div className="flex flex-col gap-6 order-2 xl:order-1">
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <div className="flex items-center justify-between border-b border-[#E0E6EA] pb-5">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
-                <Database className="size-5 text-[#8696A0]" />
-                Uploaded Knowledge
+      <div className="grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
+        <div className="order-2 flex min-w-0 flex-col gap-6 xl:order-1">
+          <DashboardCard className="min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E0E6EA] pb-5">
+              <h2 className="flex min-w-0 items-center gap-2 text-lg font-bold text-[#111B21]">
+                <Database className="size-5 shrink-0 text-[#8696A0]" />
+                <span className="min-w-0 truncate">Uploaded Knowledge</span>
               </h2>
-              <span className="rounded-full bg-[#F5F7F9] px-3 py-1 text-xs font-bold text-[#667781]">
+              <span className="shrink-0 rounded-full bg-[#F5F7F9] px-3 py-1 text-xs font-bold text-[#667781]">
                 {docs.length} Document{docs.length !== 1 ? 's' : ''}
               </span>
             </div>
 
             <div className="mt-6 flex flex-col gap-4">
               {docs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#D1D7DB] bg-[#F5F7F9]/50 py-12 text-center">
-                  <div className="flex size-16 items-center justify-center rounded-full bg-white shadow-sm">
-                    <FileText className="size-8 text-[#D1D7DB]" />
-                  </div>
-                  <p className="mt-4 text-base font-bold text-[#111B21]">
-                    No documents yet
-                  </p>
-                  <p className="mt-1 max-w-sm text-sm text-[#667781]">
-                    Upload your first PDF to start building your AI&apos;s brain.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={FileText}
+                  title="No documents yet"
+                  description="Upload your first PDF to start building your AI knowledge base."
+                  className="bg-[#F5F7F9]/50 py-12 shadow-none"
+                />
               ) : (
                 docs.map((doc) => (
                   <div
                     key={doc.id}
-                    className="group flex flex-col gap-4 sm:flex-row sm:items-center justify-between rounded-xl border border-[#E0E6EA] bg-white p-4 shadow-sm transition hover:border-[#25D366]/30 hover:shadow-md"
+                    className="group flex min-w-0 flex-col justify-between gap-4 rounded-xl border border-[#E0E6EA] bg-white p-4 shadow-sm transition hover:border-[#25D366]/30 hover:shadow-md sm:flex-row sm:items-center"
                   >
-                    <div className="flex items-start sm:items-center gap-4 min-w-0">
+                    <div className="flex min-w-0 items-start gap-4 sm:items-center">
                       <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#FF6B6B]/10 text-[#FF6B6B]">
                         <FileText className="size-6" />
                       </div>
@@ -141,10 +139,10 @@ export default async function DocumentsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                    <div className="mt-2 flex w-full min-w-0 flex-wrap items-center justify-between gap-3 sm:mt-0 sm:w-auto sm:shrink-0 sm:justify-end">
                       <div className="shrink-0">{statusDisplay(doc.status)}</div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         {doc.status === "failed" && (
                           <form action={reprocessDocument}>
                             <input type="hidden" name="document_id" value={doc.id} />
@@ -173,25 +171,23 @@ export default async function DocumentsPage() {
                 ))
               )}
             </div>
-          </div>
+          </DashboardCard>
         </div>
 
-        <div className="order-1 flex flex-col gap-6 xl:order-2">
+        <div className="order-1 flex min-w-0 flex-col gap-6 xl:order-2">
           {/* Upload Widget */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
-              <UploadCloud className="size-5 text-[#8696A0]" />
-              Upload Document
-            </h2>
-            <p className="mt-1 text-sm text-[#667781]">
-              Add new knowledge to your AI assistant.
-            </p>
+          <DashboardCard>
+            <DashboardCardHeader
+              icon={UploadCloud}
+              title="Upload Document"
+              description="Add new knowledge to your AI assistant."
+            />
             
             <DocumentUploadForm />
-          </div>
+          </DashboardCard>
 
           {/* AI Info Card */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-gradient-to-br from-white to-[#F5F7F9] p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
+          <DashboardCard className="bg-gradient-to-br from-white to-[#F5F7F9]">
             <div className="flex items-start gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#25D366] text-white shadow-[0_4px_12px_rgba(37,211,102,0.3)]">
                 <BrainCircuit className="size-5" />
@@ -203,7 +199,7 @@ export default async function DocumentsPage() {
                 </p>
               </div>
             </div>
-          </div>
+          </DashboardCard>
         </div>
       </div>
     </DashboardShell>

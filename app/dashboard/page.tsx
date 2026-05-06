@@ -1,7 +1,16 @@
 import { redirect } from "next/navigation";
-import { Package, ShoppingCart, Store } from "lucide-react";
+import { CheckCircle2, Package, ShoppingCart, Store } from "lucide-react";
 
-import { DashboardHeader, DashboardShell, PrimaryLink } from "@/components/dashboard/dashboard-shell";
+import {
+  DashboardCard,
+  DashboardCardHeader,
+  DashboardHeader,
+  DashboardSection,
+  DashboardShell,
+  PrimaryLink,
+  SecondaryButton,
+  StatCard,
+} from "@/components/dashboard/dashboard-shell";
 import { getOwnerShop, requireUser } from "@/lib/auth/dashboard";
 
 export default async function DashboardPage() {
@@ -28,64 +37,68 @@ export default async function DashboardPage() {
       <DashboardHeader
         eyebrow="Dashboard"
         title={`Welcome to ${shop.name}`}
-        description="Manage your shop profile, product catalog, and manual orders from this dashboard."
+        description="Manage your shop profile, product catalog, order flow, and WhatsApp automation readiness."
       >
         <form action="/auth/signout" method="post">
-          <button
-            type="submit"
-            className="h-10 rounded-lg border border-[#D1D7DB] bg-white px-4 text-sm font-bold text-[#111B21] transition hover:bg-[#F5F7F9]"
-          >
-            Sign out
-          </button>
+          <SecondaryButton type="submit">Sign out</SecondaryButton>
         </form>
       </DashboardHeader>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {[
-          {
-            label: "Shop profile",
-            value: shop.business_type ?? "Not set",
-            icon: Store,
-          },
-          {
-            label: "Products",
-            value: String(productCount ?? 0),
-            icon: Package,
-          },
-          {
-            label: "Orders",
-            value: String(orderCount ?? 0),
-            icon: ShoppingCart,
-          },
-        ].map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <article
-              key={item.label}
-              className="rounded-lg border border-[#E0E6EA] bg-white p-5 shadow-[0_14px_34px_rgba(17,27,33,0.05)]"
-            >
-              <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-[#E6F9F0] text-[#1DA851]">
-                <Icon className="size-5" />
-              </div>
-              <p className="text-sm font-semibold text-[#667781]">
-                {item.label}
-              </p>
-              <p className="mt-2 text-2xl font-bold text-[#111B21]">
-                {item.value}
-              </p>
-            </article>
-          );
-        })}
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          label="Shop profile"
+          value={shop.business_type ?? "Not set"}
+          icon={Store}
+          detail="Business category"
+        />
+        <StatCard
+          label="Products"
+          value={String(productCount ?? 0)}
+          icon={Package}
+          tone="blue"
+          detail="Catalog items"
+        />
+        <StatCard
+          label="Orders"
+          value={String(orderCount ?? 0)}
+          icon={ShoppingCart}
+          tone="yellow"
+          detail="Manual and chat orders"
+        />
       </div>
 
-      <section className="mt-6 rounded-lg border border-[#E0E6EA] bg-white p-6 shadow-[0_18px_45px_rgba(17,27,33,0.06)]">
-        <h2 className="text-xl font-bold">Next steps</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <PrimaryLink href="/dashboard/products/new">Add product</PrimaryLink>
-          <PrimaryLink href="/dashboard/orders/new">Create order</PrimaryLink>
-        </div>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <DashboardSection>
+          <DashboardCardHeader
+            icon={CheckCircle2}
+            title="Next best actions"
+            description="Keep your shop ready for WhatsApp automation by completing the core setup flow."
+          />
+          <div className="mt-5 flex flex-wrap gap-3">
+            <PrimaryLink href="/dashboard/products/new">Add product</PrimaryLink>
+            <PrimaryLink href="/dashboard/orders/new">Create order</PrimaryLink>
+            <PrimaryLink href="/dashboard/documents">Upload policy</PrimaryLink>
+          </div>
+        </DashboardSection>
+
+        <DashboardCard>
+          <DashboardCardHeader
+            title="Operational focus"
+            description="The assistant uses structured shop data for critical answers and pauses when owner attention is needed."
+          />
+          <div className="mt-5 grid gap-3 text-sm font-semibold text-[#667781]">
+            <div className="rounded-lg bg-[#F5F7F9] px-4 py-3">
+              Add products before enabling full AI sales flows.
+            </div>
+            <div className="rounded-lg bg-[#F5F7F9] px-4 py-3">
+              Upload policies so AI can answer FAQ and delivery questions.
+            </div>
+            <div className="rounded-lg bg-[#F5F7F9] px-4 py-3">
+              Watch inbox escalations before resuming automation.
+            </div>
+          </div>
+        </DashboardCard>
+      </div>
     </DashboardShell>
   );
 }

@@ -1,5 +1,7 @@
 import {
   Field,
+  FormPanel,
+  SelectInput,
   SubmitButton,
   TextArea,
   TextInput,
@@ -32,9 +34,7 @@ export function ProductForm({
         {/* Main Content */}
         <div className="flex flex-col gap-6 xl:col-span-2">
           {/* General Information */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-5 text-lg font-bold text-[#111B21]">Basic Details</h2>
-            <div className="grid gap-5">
+          <FormPanel title="Basic Details">
               <Field label="Product Name">
                 <TextInput name="name" defaultValue={product?.name ?? ""} placeholder="e.g. Vintage Cotton T-Shirt" required />
               </Field>
@@ -46,12 +46,10 @@ export function ProductForm({
                   required
                 />
               </Field>
-            </div>
-          </div>
+          </FormPanel>
 
           {/* Pricing & Inventory */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-5 text-lg font-bold text-[#111B21]">Pricing & Inventory</h2>
+          <FormPanel title="Pricing & Inventory">
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Price (USD)">
                 <TextInput
@@ -75,11 +73,10 @@ export function ProductForm({
                 />
               </Field>
             </div>
-          </div>
+          </FormPanel>
 
           {/* Media */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-5 text-lg font-bold text-[#111B21]">Media</h2>
+          <FormPanel title="Media">
             <div className="rounded-xl border border-dashed border-[#D1D7DB] bg-[#F5F7F9] p-6 text-center transition hover:border-[#25D366] hover:bg-[#E6F9F0]">
               <Field label="Product Image">
                 <TextInput name="image" type="file" accept="image/*" className="mt-2" />
@@ -88,24 +85,21 @@ export function ProductForm({
                 Upload a high-quality image of your product. Max 5MB.
               </p>
             </div>
-          </div>
+          </FormPanel>
         </div>
 
         {/* Sidebar */}
         <div className="flex flex-col gap-6">
           {/* Status & Organization */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-5 text-lg font-bold text-[#111B21]">Organization</h2>
-            <div className="grid gap-5">
+          <FormPanel title="Organization">
               <Field label="Status">
-                <select
+                <SelectInput
                   name="status"
                   defaultValue={product?.status ?? "active"}
-                  className="mt-2 h-11 w-full rounded-lg border border-[#D1D7DB] bg-white px-4 text-sm text-[#111B21] outline-none transition focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366]"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Draft / Inactive</option>
-                </select>
+                </SelectInput>
               </Field>
               <Field label="Category">
                 <TextInput name="category" placeholder="e.g. Clothing" defaultValue={product?.category ?? ""} />
@@ -117,21 +111,17 @@ export function ProductForm({
                   defaultValue={product?.tags?.join(", ") ?? ""}
                 />
               </Field>
-            </div>
-          </div>
+          </FormPanel>
 
           {/* Variants */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-5 text-lg font-bold text-[#111B21]">Variants</h2>
-            <div className="grid gap-5">
+          <FormPanel title="Variants">
               <Field label="Sizes (comma separated)">
                 <TextInput name="sizes" placeholder="S, M, L, XL" defaultValue={sizes} />
               </Field>
               <Field label="Colors (comma separated)">
                 <TextInput name="colors" placeholder="Red, Blue, Green" defaultValue={colors} />
               </Field>
-            </div>
-          </div>
+          </FormPanel>
         </div>
       </div>
 

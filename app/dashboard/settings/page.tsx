@@ -13,6 +13,7 @@ import {
   DashboardHeader,
   DashboardShell,
   Field,
+  FormPanel,
   SubmitButton,
   TextInput,
 } from "@/components/dashboard/dashboard-shell";
@@ -30,18 +31,14 @@ export default async function SettingsPage() {
         description="Update your shop profile and the basic settings used by products and orders."
       />
 
-      <form action={updateShopSettings} className="mt-8 flex flex-col gap-6">
+      <form action={updateShopSettings} className="flex flex-col gap-6">
         <div className="grid gap-6 xl:grid-cols-2">
           {/* Shop Profile */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
-              <Building2 className="size-5 text-[#8696A0]" />
-              Shop Profile
-            </h2>
-            <p className="mt-1 text-sm text-[#667781]">
-              Basic information about your business.
-            </p>
-            <div className="mt-6 flex flex-col gap-5">
+          <FormPanel
+            icon={Building2}
+            title="Shop Profile"
+            description="Basic information about your business."
+          >
               <Field label="Shop Name">
                 <div className="relative">
                   <Store className="absolute left-3 top-3.5 size-4 text-[#8696A0]" />
@@ -72,19 +69,14 @@ export default async function SettingsPage() {
                   />
                 </div>
               </Field>
-            </div>
-          </div>
+          </FormPanel>
 
           {/* System Preferences */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
-              <SettingsIcon className="size-5 text-[#8696A0]" />
-              System Preferences
-            </h2>
-            <p className="mt-1 text-sm text-[#667781]">
-              Defaults for orders, inventory, and localization.
-            </p>
-            <div className="mt-6 flex flex-col gap-5">
+          <FormPanel
+            icon={SettingsIcon}
+            title="System Preferences"
+            description="Defaults for orders, inventory, and localization."
+          >
               <Field label="Default Currency">
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-3.5 size-4 text-[#8696A0]" />
@@ -121,8 +113,7 @@ export default async function SettingsPage() {
                   />
                 </div>
               </Field>
-            </div>
-          </div>
+          </FormPanel>
         </div>
 
         <div className="flex items-center justify-end border-t border-[#E0E6EA] py-4">

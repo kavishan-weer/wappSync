@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 
 import {
   DashboardHeader,
+  DashboardShell,
   Field,
+  FormPanel,
   SubmitButton,
   TextInput,
 } from "@/components/dashboard/dashboard-shell";
@@ -18,18 +20,16 @@ export default async function NewShopPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F0F2F5] px-5 py-10 text-[#111B21]">
-      <div className="mx-auto max-w-3xl">
+    <DashboardShell active="dashboard" shopName="Setup">
+      <div className="mx-auto w-full max-w-3xl">
         <DashboardHeader
           eyebrow="Shop setup"
           title="Create your shop profile"
           description="Add the basic shop details needed before products and orders can be managed."
         />
 
-        <form
-          action={createShop}
-          className="mt-6 space-y-5 rounded-lg border border-[#E0E6EA] bg-white p-6 shadow-[0_18px_45px_rgba(17,27,33,0.06)]"
-        >
+        <form action={createShop} className="mt-6">
+          <FormPanel title="Shop details">
           <Field label="Owner name">
             <TextInput name="full_name" defaultValue="" />
           </Field>
@@ -47,8 +47,9 @@ export default async function NewShopPage() {
             <TextInput name="whatsapp_number" placeholder="+94771234567" required />
           </Field>
           <SubmitButton>Create shop</SubmitButton>
+          </FormPanel>
         </form>
       </div>
-    </main>
+    </DashboardShell>
   );
 }

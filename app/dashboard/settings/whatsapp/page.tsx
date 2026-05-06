@@ -1,9 +1,12 @@
 import { CheckCircle2, XCircle, MessageCircle, Phone, Fingerprint, Key, ShieldCheck, HelpCircle } from "lucide-react";
 
 import {
+  DashboardCard,
+  DashboardCardHeader,
   DashboardHeader,
   DashboardShell,
   Field,
+  FormPanel,
   SubmitButton,
   TextInput,
 } from "@/components/dashboard/dashboard-shell";
@@ -33,11 +36,11 @@ export default async function WhatsAppSettingsPage() {
         description="Connect your WhatsApp Business number using the Meta Cloud API to receive and send messages automatically."
       />
 
-      <div className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-start">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
         <div className="flex flex-1 flex-col gap-6">
           {/* Connection status badge */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-4 text-lg font-bold text-[#111B21]">Connection Status</h2>
+          <DashboardCard>
+            <DashboardCardHeader title="Connection Status" />
             <div className={`flex items-center gap-4 rounded-xl border p-4 ${account?.is_connected ? 'border-[#25D366]/30 bg-[#E6F9F0]/50' : 'border-[#E0E6EA] bg-[#F5F7F9]'}`}>
               {account?.is_connected ? (
                 <>
@@ -77,12 +80,14 @@ export default async function WhatsAppSettingsPage() {
                 <TestConnectionButton />
               </div>
             )}
-          </div>
+          </DashboardCard>
 
           {/* Configuration form */}
-          <form action={saveWhatsAppConfig} className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="mb-1 text-lg font-bold text-[#111B21]">API Credentials</h2>
-            <p className="mb-6 text-sm text-[#667781]">Enter the details from your Meta Developer app dashboard.</p>
+          <form action={saveWhatsAppConfig}>
+            <FormPanel
+              title="API Credentials"
+              description="Enter the details from your Meta Developer app dashboard."
+            >
             
             <div className="grid gap-5 md:grid-cols-2">
               <Field label="Phone Number ID">
@@ -143,16 +148,14 @@ export default async function WhatsAppSettingsPage() {
             <div className="mt-6 flex items-center justify-end border-t border-[#E0E6EA] pt-5">
               <SubmitButton>Save Configuration</SubmitButton>
             </div>
+            </FormPanel>
           </form>
         </div>
 
         {/* Sidebar: Webhook setup guide */}
         <div className="flex w-full flex-col gap-6 xl:w-96">
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
-              <HelpCircle className="size-5 text-[#8696A0]" />
-              Webhook Setup Guide
-            </h2>
+          <DashboardCard>
+            <DashboardCardHeader icon={HelpCircle} title="Webhook Setup Guide" />
             <p className="mt-2 text-sm leading-relaxed text-[#667781]">
               To receive inbound messages, configure your webhook in the Meta Developer Dashboard with this URL:
             </p>
@@ -189,7 +192,7 @@ export default async function WhatsAppSettingsPage() {
                 </li>
               </ul>
             </div>
-          </div>
+          </DashboardCard>
         </div>
       </div>
     </DashboardShell>

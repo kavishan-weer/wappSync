@@ -15,13 +15,15 @@ import {
 import {
   DashboardHeader,
   DashboardShell,
+  FormPanel,
+  SelectInput,
+  SecondaryLink,
   SubmitButton,
 } from "@/components/dashboard/dashboard-shell";
 import { requireShop } from "@/lib/auth/dashboard";
 import type { Order } from "@/lib/db/types";
 import { orderStatuses } from "@/lib/orders/status";
 import { updateOrderStatus } from "../actions";
-import Link from "next/link";
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -103,18 +105,15 @@ export default async function OrderDetailPage({
         title={`Order #${shortId}`}
         description={`Placed on ${date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
       >
-        <Link
-          href="/dashboard/orders"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#D1D7DB] bg-white px-4 text-sm font-bold text-[#111B21] transition hover:bg-[#F5F7F9]"
-        >
+        <SecondaryLink href="/dashboard/orders">
           <ChevronLeft className="size-4" /> Back to Orders
-        </Link>
+        </SecondaryLink>
       </DashboardHeader>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
         {/* Left Column: Items */}
         <section className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
+          <div className="rounded-lg border border-[#E0E6EA] bg-white p-6 shadow-[0_16px_38px_rgba(17,27,33,0.05)]" data-dashboard-animate>
             <div className="flex items-center justify-between border-b border-[#E0E6EA] pb-5">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
                 <Receipt className="size-5 text-[#8696A0]" />
@@ -161,32 +160,27 @@ export default async function OrderDetailPage({
         {/* Right Column: Customer & Status */}
         <aside className="flex flex-col gap-6">
           {/* Status Update Form */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <h2 className="text-lg font-bold text-[#111B21]">Fulfillment Status</h2>
-            <p className="mt-1 text-xs text-[#667781]">
-              Update the status to track the order progress.
-            </p>
+          <FormPanel title="Fulfillment Status" description="Update the status to track the order progress.">
             <form action={updateOrderStatus} className="mt-5">
               <input type="hidden" name="order_id" value={order.id} />
-              <select
+              <SelectInput
                 name="status"
                 defaultValue={order.status}
-                className="h-12 w-full rounded-xl border border-[#D1D7DB] bg-white px-4 text-sm font-bold text-[#111B21] outline-none transition focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366]"
               >
                 {orderStatuses.map((status) => (
                   <option key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </option>
                 ))}
-              </select>
+              </SelectInput>
               <div className="mt-4">
                 <SubmitButton>Save Changes</SubmitButton>
               </div>
             </form>
-          </div>
+          </FormPanel>
 
           {/* Customer Details */}
-          <div className="rounded-2xl border border-[#E0E6EA] bg-white p-6 shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
+          <div className="rounded-lg border border-[#E0E6EA] bg-white p-6 shadow-[0_16px_38px_rgba(17,27,33,0.05)]" data-dashboard-animate>
             <h2 className="flex items-center gap-2 text-lg font-bold text-[#111B21]">
               <User className="size-5 text-[#8696A0]" />
               Customer Info

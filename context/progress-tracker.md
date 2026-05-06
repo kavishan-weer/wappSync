@@ -108,6 +108,25 @@ change.
   - Updated PDF text extraction to use `pdf-parse` v2 with its Node worker shim so server-side processing has the required DOM geometry globals
   - Explicitly set Gemini embedding output dimensionality to 768 so generated vectors match the `document_chunks.embedding` pgvector column
   - Improved uploaded-knowledge answering by classifying FAQ/document questions more broadly and trying RAG before escalating unknown messages
+- AI Knowledge layout overflow fix
+  - Updated the dashboard shell content grid to use shrink-safe columns so dashboard pages do not overflow horizontally
+  - Tightened the AI Knowledge documents layout with `min-w-0`, wrapping headers, and shrink-safe document rows so the full UI stays visible in one viewport
+- Landing Page — Untitled UI + GSAP upgrade
+  - Rebuilt the landing page into modular sections for header, hero, metrics, pain points, features, workflow, dashboard showcase, pricing, FAQ, final CTA, and footer
+  - Added Untitled UI icon usage and free Untitled-style marketing components adapted to the existing WhatsApp-inspired design tokens
+  - Added GSAP-powered hero, scroll reveal, floating mockup, and counter animations through a small client-only animation component with reduced-motion support
+  - Updated primary landing CTAs to route to `/signup` while keeping the dashboard demo anchor and login access
+  - Verified production build and local `/` route content after the upgrade
+- Dashboard UI/UX — Untitled-style full dashboard refresh
+  - Added a shared dashboard UI layer for the shell, page headers, cards, stat tiles, badges, empty states, form panels, table shells, links, buttons, inputs, and selects
+  - Refreshed the dashboard shell with Untitled UI icons, premium sidebar active states, compact app context, consistent spacing, and mobile-safe layout constraints
+  - Added subtle client-only GSAP dashboard reveal animation with reduced-motion support
+  - Migrated dashboard overview, products, orders, order creation/detail, AI Knowledge, WhatsApp settings, shop settings, setup-required, and shop creation screens toward the shared dashboard primitives
+  - Preserved existing server actions, Supabase queries, auth redirects, and business workflows while improving UI consistency and maintainability
+  - Cleaned up dashboard-related React lint issues in document upload state reset and the shared mobile hook
+- Dashboard sidebar navigation visibility fix
+  - Updated the dashboard GSAP helper to rerun on App Router pathname changes
+  - Added stale-animation cancellation and cleanup of inline opacity, visibility, and transform styles so client-side sidebar navigation does not leave page sections hidden
 
 ## In Progress
 
@@ -160,3 +179,10 @@ change.
 - Phase 5 build passed. Inbox page at `/dashboard/inbox` registered as dynamic. Sidebar Inbox link updated. Four filter tabs, conversation sidebar with status badges, WhatsApp-style message thread, reply composer with Enter-to-send, pause/resume AI and resolve/reopen conversation controls all compile and render.
 - Phase 6 build passed. AI library (`lib/ai/`) compiles with all 4 modules. Webhook route updated to trigger AI auto-reply. Groq integration uses llama-3.3-70b-versatile for classification and response generation.
 - Phase 7 build passed. RAG library (`lib/rag/`) compiles with all 4 modules. Documents page at `/dashboard/documents` registered as dynamic. AI handler updated with RAG-powered policy question handling. Switched from OpenAI to Google Gemini embeddings (gemini-embedding-001, 768 dims, free). Installed @google/genai, removed openai package.
+- AI Knowledge layout overflow fix build passed after enabling network access for Google font fetching.
+- Landing page Untitled UI + GSAP upgrade build passed after enabling network access for Google font fetching. Local route check on `http://127.0.0.1:3006/` returned 200 and confirmed the hero, `/signup` CTA, Features, How it works, dashboard preview, Pricing, and FAQ anchors are present.
+- Earlier `npm run lint` failures in `app/dashboard/documents/document-upload-form.tsx` and `hooks/use-mobile.ts` were resolved during the dashboard UI/UX refresh.
+- Dashboard UI/UX refresh build passed after enabling network access for Google font fetching.
+- Targeted lint across changed dashboard files passed. Full `npm run lint` exits successfully with only the existing untracked `scratch.ts` unused-variable warning.
+- Local unauthenticated route checks on `http://127.0.0.1:3007` confirmed `/dashboard`, `/dashboard/products`, `/dashboard/orders`, `/dashboard/documents`, `/dashboard/settings`, and `/dashboard/settings/whatsapp` all return 307 redirects to the correct login URLs.
+- Dashboard sidebar navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.

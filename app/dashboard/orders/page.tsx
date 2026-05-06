@@ -16,6 +16,9 @@ import {
 import {
   DashboardHeader,
   DashboardShell,
+  EmptyState,
+  PrimaryLink,
+  TableShell,
 } from "@/components/dashboard/dashboard-shell";
 import { requireShop } from "@/lib/auth/dashboard";
 import type { Order } from "@/lib/db/types";
@@ -88,34 +91,24 @@ export default async function OrdersPage() {
         title="Order Management"
         description="Create orders manually, track customer purchases, and manage fulfillment status."
       >
-        <Link
-          href="/dashboard/orders/new"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,211,102,0.3)] transition hover:bg-[#1DA851] hover:shadow-[0_6px_16px_rgba(37,211,102,0.4)]"
-        >
+        <PrimaryLink href="/dashboard/orders/new">
           <Plus className="size-4" /> Create Order
-        </Link>
+        </PrimaryLink>
       </DashboardHeader>
 
-      <div className="mt-8 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {orders.length === 0 ? (
-          <section className="rounded-2xl border border-[#E0E6EA] bg-white p-12 text-center shadow-[0_14px_34px_rgba(17,27,33,0.05)]">
-            <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-[#F0F2F5]">
-              <ShoppingCart className="size-8 text-[#8696A0]" />
-            </div>
-            <h2 className="mt-4 text-xl font-bold text-[#111B21]">No orders yet</h2>
-            <p className="mt-2 text-sm text-[#667781]">
-              Create your first manual order after adding products to your catalog.
-            </p>
-            <Link
-              href="/dashboard/orders/new"
-              className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#25D366] px-5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(37,211,102,0.3)] transition hover:bg-[#1DA851]"
-            >
+          <EmptyState
+            icon={ShoppingCart}
+            title="No orders yet"
+            description="Create your first manual order after adding products to your catalog."
+          >
+            <PrimaryLink href="/dashboard/orders/new">
               <Plus className="size-4" /> Create Order
-            </Link>
-          </section>
+            </PrimaryLink>
+          </EmptyState>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-[#E0E6EA] bg-white shadow-[0_4px_12px_rgba(17,27,33,0.04)]">
-            <div className="overflow-x-auto">
+          <TableShell>
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-[#E0E6EA] bg-[#F5F7F9]">
                   <tr>
@@ -205,8 +198,7 @@ export default async function OrdersPage() {
                   })}
                 </tbody>
               </table>
-            </div>
-          </div>
+          </TableShell>
         )}
       </div>
     </DashboardShell>

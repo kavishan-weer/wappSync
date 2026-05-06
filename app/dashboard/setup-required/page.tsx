@@ -2,6 +2,7 @@ import { Database } from "lucide-react";
 
 import {
   DashboardHeader,
+  DashboardSection,
   DashboardShell,
 } from "@/components/dashboard/dashboard-shell";
 import { requireUser } from "@/lib/auth/dashboard";
@@ -17,7 +18,7 @@ export default async function SetupRequiredPage() {
         description="Your Supabase project is connected, but the required database tables are not available yet."
       />
 
-      <section className="mt-6 rounded-lg border border-[#E0E6EA] bg-white p-6 shadow-[0_18px_45px_rgba(17,27,33,0.06)]">
+      <DashboardSection>
         <div className="mb-5 flex size-12 items-center justify-center rounded-lg bg-[#E6F9F0] text-[#1DA851]">
           <Database className="size-6" />
         </div>
@@ -40,7 +41,7 @@ export default async function SetupRequiredPage() {
           order. If you are using the Supabase CLI, link the project and push the
           migrations.
         </p>
-      </section>
+      </DashboardSection>
     </DashboardShell>
   );
 }
