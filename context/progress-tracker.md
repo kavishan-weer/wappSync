@@ -5,11 +5,11 @@ change.
 
 ## Current Phase
 
-- Phase 6 complete
+- Phase 7 complete
 
 ## Current Goal
 
-- Phase 7 — RAG for Policies and FAQ
+- Phase 8 — AI Order Creation Flow
 
 ## Completed
 
@@ -83,10 +83,24 @@ change.
   - Added `lib/ai/handler.ts` — AI orchestrator: classifies intent → fetches relevant DB data (products/orders) → generates response → decides escalation
   - Updated `app/api/whatsapp/webhook/route.ts` — webhook now triggers AI auto-reply after storing inbound messages, respects automation_paused, marks conversations as needs_attention on escalation
   - Updated `.env.example` with `GROQ_API_KEY`
-  - Supported intents: greeting, product_question (searches product catalog), order_status (looks up customer orders by phone), order_creation (placeholder for Phase 8), policy_question (escalates to owner, RAG in Phase 7), unknown (escalates)
+  - Supported intents: greeting, product_question (searches product catalog), order_status (looks up customer orders by phone), order_creation (placeholder for Phase 8), policy_question (now RAG-powered via Phase 7), unknown (escalates)
   - AI respects conversation automation_paused flag and skips auto-reply when paused
   - On escalation, conversation is automatically marked as needs_attention and automation is paused
   - Verified production build: all AI library files compile, webhook route updated
+- Phase 7 — RAG for Policies and FAQ
+  - Added `supabase/migrations/0004_phase7_rag.sql` — pgvector extension, `documents` and `document_chunks` tables, IVFFlat index, `search_document_chunks` RPC function, RLS policies
+  - Added `lib/rag/chunker.ts` — text chunking with paragraph/sentence boundary splitting and configurable overlap
+  - Added `lib/rag/embeddings.ts` — OpenAI embedding generation (text-embedding-3-small) with single and batch support
+  - Added `lib/rag/search.ts` — vector similarity search via Supabase RPC, context formatting for AI
+  - Added `lib/rag/process.ts` — full PDF processing pipeline: download from Storage → extract text → chunk → embed → store
+  - Added `app/dashboard/documents/page.tsx` — document upload UI with status indicators, retry/delete actions, file size display
+  - Added `app/dashboard/documents/actions.ts` — server actions for upload (triggers processing), delete (cleans up storage + DB), and reprocess
+  - Updated `lib/ai/handler.ts` — policy_question now uses RAG: searches document chunks via vector similarity, generates AI response from retrieved context, escalates only if no relevant documents found
+  - Added "AI Knowledge" nav item to dashboard sidebar
+  - Added `Document` and `DocumentChunk` types to `lib/db/types.ts`
+  - Updated `.env.example` with `OPENAI_API_KEY`
+  - Installed `pdf-parse` and `openai` npm packages
+  - Verified production build: `/dashboard/documents` registered as dynamic route
 
 ## In Progress
 
@@ -94,10 +108,13 @@ change.
 
 ## Next Up
 
-- Phase 7 — RAG for Policies and FAQ: PDF upload, text extraction, chunking, embeddings, vector search, RAG-enhanced AI responses
+- Phase 8 — AI Order Creation Flow: multi-turn conversation, detail extraction, stock validation, order placement via WhatsApp
 
 ## Open Questions
 
+- Owner needs to add `OPENAI_API_KEY` to `.env.local` for RAG embeddings (get it from https://platform.openai.com)
+- Owner needs to run migration `0004_phase7_rag.sql` in Supabase SQL Editor to enable pgvector and create document tables
+- Owner needs to create a `documents` storage bucket in Supabase Dashboard → Storage (public or private)
 - Owner needs to add `GROQ_API_KEY` to `.env.local` (get it from https://console.groq.com)
 - Owner needs to add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for the webhook to work (get it from Supabase Dashboard → Settings → API)
 - Owner needs to run migration `0003_phase4_whatsapp.sql` in Supabase SQL Editor before using WhatsApp features
@@ -112,7 +129,10 @@ change.
 - AI uses **Groq with llama-3.3-70b-versatile** for both classification and response generation. Classification uses JSON structured output with low temperature (0.1) for determinism; response generation uses moderate temperature (0.6) for natural language.
 - AI **never invents product data** — it only responds based on structured data fetched from the database. If no products match, it says so clearly.
 - On low confidence or unknown intent, the AI **auto-escalates**: sends a polite holding message, marks the conversation as `needs_attention`, and pauses automation. Owner must resolve from the dashboard.
-- Policy questions escalate immediately since RAG is not yet implemented (Phase 7).
+- Policy questions now use **RAG with pgvector** instead of auto-escalating. The AI searches uploaded document chunks by cosine similarity, retrieves the top 5 matches above 0.5 threshold, and generates a response from retrieved context. Only escalates if no relevant documents are found.
+- Embeddings use **OpenAI text-embedding-3-small** (1536 dimensions) for cost efficiency. The IVFFlat index on pgvector provides fast approximate nearest neighbor search.
+- PDF processing is synchronous in MVP (runs during the upload request). For production, this should be moved to a background job/queue.
+- Document chunks use **800-character chunks with 150-character overlap** to balance context quality and embedding accuracy.
 
 ## Session Notes
 
@@ -131,3 +151,4 @@ change.
 - Phase 4 build passed. All new routes compile. Webhook registered as dynamic at `/api/whatsapp/webhook`. WhatsApp settings page accessible at `/dashboard/settings/whatsapp`.
 - Phase 5 build passed. Inbox page at `/dashboard/inbox` registered as dynamic. Sidebar Inbox link updated. Four filter tabs, conversation sidebar with status badges, WhatsApp-style message thread, reply composer with Enter-to-send, pause/resume AI and resolve/reopen conversation controls all compile and render.
 - Phase 6 build passed. AI library (`lib/ai/`) compiles with all 4 modules. Webhook route updated to trigger AI auto-reply. Groq integration uses llama-3.3-70b-versatile for classification and response generation.
+- Phase 7 build passed. RAG library (`lib/rag/`) compiles with all 4 modules. Documents page at `/dashboard/documents` registered as dynamic. AI handler updated with RAG-powered policy question handling. Installed pdf-parse and openai packages.

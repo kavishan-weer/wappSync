@@ -141,3 +141,28 @@ export type Message = {
   created_at: string;
 };
 
+// ── Phase 7: RAG types ───────────────────────────────────────────
+
+export type DocumentStatus = "pending" | "processing" | "ready" | "failed";
+
+export type Document = {
+  id: string;
+  shop_id: string;
+  name: string;
+  file_path: string;
+  file_size: number;
+  status: DocumentStatus;
+  chunk_count: number;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DocumentChunk = {
+  id: string;
+  shop_id: string;
+  document_id: string;
+  content: string;
+  chunk_index: number;
+  created_at: string;
+};

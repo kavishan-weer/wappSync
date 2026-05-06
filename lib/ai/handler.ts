@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { classifyIntent } from "./classify";
 import { generateReply } from "./respond";
 import { formatProductContext, formatOrderContext } from "./prompts";
+import { searchDocuments, formatRAGContext } from "@/lib/rag/search";
 import type { AIDecision, ProductContext } from "./types";
 
 const ESCALATION_MESSAGE =
@@ -88,15 +89,13 @@ export async function handleInboundMessage(
       };
 
     case "policy_question":
-      return {
-        intent: "policy_question",
-        confidence: classification.confidence,
-        reply:
-          "Great question! Let me check our policies for you. 📋 I'll connect you with the shop owner who can give you the most accurate answer. One moment please!",
-        shouldEscalate: true,
-        reasoning:
-          "Policy question detected. RAG not yet implemented (Phase 7), escalating to owner.",
-      };
+      return handlePolicyQuestion(
+        supabase,
+        shopId,
+        shopName,
+        message,
+        classification.confidence,
+      );
 
     case "unknown":
     default:
@@ -226,5 +225,43 @@ async function handleOrderStatus(
     reply,
     shouldEscalate: false,
     reasoning: `Found ${orderList.length} orders for customer phone ${customerPhone}`,
+  };
+}
+
+/**
+ * Handle a policy/FAQ question using RAG.
+ */
+async function handlePolicyQuestion(
+  supabase: SupabaseClient,
+  shopId: string,
+  shopName: string,
+  message: string,
+  confidence: "high" | "medium" | "low",
+): Promise<AIDecision> {
+  // Search for relevant document chunks
+  const results = await searchDocuments(supabase, shopId, message, 5, 0.5);
+
+  if (results.length === 0) {
+    // No documents found — escalate to owner
+    return {
+      intent: "policy_question",
+      confidence,
+      reply:
+        "Great question! 📋 I don't have specific information about that right now. Let me connect you with the shop owner who can give you the most accurate answer!",
+      shouldEscalate: true,
+      reasoning:
+        "Policy question detected but no relevant documents found via RAG. Escalating to owner.",
+    };
+  }
+
+  const context = formatRAGContext(results);
+  const reply = await generateReply(shopName, context, message, "policy_question");
+
+  return {
+    intent: "policy_question",
+    confidence,
+    reply,
+    shouldEscalate: false,
+    reasoning: `RAG search returned ${results.length} relevant chunks. Top similarity: ${Math.round(results[0].similarity * 100)}%`,
   };
 }

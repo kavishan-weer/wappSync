@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  FileText,
   Inbox,
   MessageCircle,
   Package,
@@ -12,6 +13,7 @@ const navItems = [
   { label: "Inbox", href: "/dashboard/inbox", icon: Inbox },
   { label: "Products", href: "/dashboard/products", icon: Package },
   { label: "Orders", href: "/dashboard/orders", icon: ShoppingCart },
+  { label: "AI Knowledge", href: "/dashboard/documents", icon: FileText },
   { label: "WhatsApp", href: "/dashboard/settings/whatsapp", icon: Smartphone },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -22,7 +24,7 @@ export function DashboardShell({
   shopName,
 }: {
   children: React.ReactNode;
-  active: "dashboard" | "inbox" | "products" | "orders" | "settings" | "whatsapp";
+  active: "dashboard" | "inbox" | "products" | "orders" | "documents" | "settings" | "whatsapp";
   shopName?: string;
 }) {
   return (
