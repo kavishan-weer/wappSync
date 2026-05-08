@@ -61,7 +61,7 @@ Use Supabase Postgres for structured business data.
 | Customers              |           Yes | Phone number as primary customer identity                         |
 | Orders                 |           Yes | Order items, status, customer phone, address, timestamps          |
 | Messages               |           Yes | Inbound/outbound chat history for dashboard inbox                 |
-| Conversations          |           Yes | Status, last message, needs attention, automation paused          |
+| Conversations          |           Yes | Status, last message, needs attention, automation paused, pending order state |
 | RAG chunks             |           Yes | Text chunks, metadata, embedding vector                           |
 | Escalations            |           Yes | Reason, conversation ID, resolved status                          |
 
@@ -230,6 +230,8 @@ If AI confidence is low or required data is missing:
 4. Order is created
 5. Stock is reduced
 6. Customer receives confirmation or pending confirmation message
+
+Pending chat order details are stored on the conversation as structured JSON while the AI collects one missing field at a time. Product identity, stock, price, customers, orders, and stock deduction still use structured database queries and the atomic chat order RPC; AI extraction is never trusted without validation.
 
 ### Order Status Flow
 

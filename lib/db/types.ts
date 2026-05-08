@@ -14,6 +14,13 @@ export type ShopSettings = {
   default_currency: string;
   order_prefix: string;
   low_stock_alert_threshold: number;
+  automation_enabled: boolean;
+  owner_alert_phone: string | null;
+  fallback_message: string;
+  business_hours_enabled: boolean;
+  business_hours_start: string;
+  business_hours_end: string;
+  business_hours_timezone: string;
 };
 
 export type ProductStatus = "active" | "inactive";
@@ -117,6 +124,7 @@ export type Conversation = {
   customer_name: string | null;
   status: ConversationStatus;
   automation_paused: boolean;
+  pending_order_state: Record<string, unknown> | null;
   last_message_at: string | null;
   last_message_preview: string | null;
   created_at: string;
@@ -164,5 +172,17 @@ export type DocumentChunk = {
   document_id: string;
   content: string;
   chunk_index: number;
+  created_at: string;
+};
+
+export type AppLog = {
+  id: string;
+  shop_id: string | null;
+  conversation_id: string | null;
+  source: string;
+  level: "info" | "warn" | "error";
+  event: string;
+  message: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 };

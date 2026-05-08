@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireShop } from "@/lib/auth/dashboard";
+import { createServiceClient } from "@/lib/supabase/server";
 import {
   parseMoney,
   parseStock,
@@ -61,7 +62,7 @@ async function uploadProductImage(
   productId: string,
   formData: FormData,
 ) {
-  const { supabase } = await requireShop();
+  const serviceClient = createServiceClient();
   const image = formData.get("image");
 
   if (!(image instanceof File) || image.size === 0) {
@@ -71,7 +72,7 @@ async function uploadProductImage(
   const safeName = image.name.replace(/[^a-zA-Z0-9._-]/g, "-");
   const storagePath = `${shopId}/${productId}/${Date.now()}-${safeName}`;
 
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await serviceClient.storage
     .from("product-images")
     .upload(storagePath, image, {
       cacheControl: "3600",
@@ -84,18 +85,41 @@ async function uploadProductImage(
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("product-images").getPublicUrl(storagePath);
+  } = serviceClient.storage.from("product-images").getPublicUrl(storagePath);
 
-  const { error: imageError } = await supabase.from("product_images").insert({
+  const { data: existingImages } = await serviceClient
+    .from("product_images")
+    .select("id, storage_path")
+    .eq("shop_id", shopId)
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true })
+    .limit(1);
+
+  const existingImage = existingImages?.[0];
+  const imagePayload = {
     shop_id: shopId,
     product_id: productId,
     storage_path: storagePath,
     public_url: publicUrl,
     alt_text: String(formData.get("name") ?? "Product image"),
-  });
+  };
+
+  const { error: imageError } = existingImage
+    ? await serviceClient
+        .from("product_images")
+        .update(imagePayload)
+        .eq("id", existingImage.id)
+    : await serviceClient.from("product_images").insert(imagePayload);
 
   if (imageError) {
+    await serviceClient.storage.from("product-images").remove([storagePath]);
     throw new Error(imageError.message);
+  }
+
+  if (existingImage?.storage_path) {
+    await serviceClient.storage
+      .from("product-images")
+      .remove([existingImage.storage_path]);
   }
 }
 
@@ -195,7 +219,8 @@ export async function deleteProduct(formData: FormData) {
     .filter(Boolean);
 
   if (storagePaths.length > 0) {
-    await supabase.storage.from("product-images").remove(storagePaths);
+    const serviceClient = createServiceClient();
+    await serviceClient.storage.from("product-images").remove(storagePaths);
   }
 
   const { error } = await supabase

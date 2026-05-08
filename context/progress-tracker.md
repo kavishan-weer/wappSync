@@ -5,11 +5,11 @@ change.
 
 ## Current Phase
 
-- Phase 7 complete
+- Phase 12 complete
 
 ## Current Goal
 
-- Phase 8 — AI Order Creation Flow
+- Phase 12 — MVP Polish and Testing
 
 ## Completed
 
@@ -135,6 +135,75 @@ change.
   - Reduced the overly white feel with a pale green page surface, WhatsApp-style grid wash in the hero, and warmer section backgrounds
   - Updated landing cards, badges, hero stats, dashboard mockup, pricing, FAQ, footer, and dark CTA accents to use light WhatsApp-inspired green surfaces
   - Preserved the light theme, existing landing page content, CTAs, animations, and route structure
+- Phase 8 — AI Order Creation Flow
+  - Added migration `0006_phase8_ai_order_creation.sql` with `conversations.pending_order_state` for multi-turn order collection
+  - Added atomic `create_chat_order` RPC for webhook/service-role order creation with product validation, customer upsert, order item creation, total calculation, and stock deduction
+  - Added `lib/ai/order-flow.ts` to extract product, quantity, customer name, phone, and address from WhatsApp messages using Groq with heuristic fallback
+  - Updated AI orchestration so pending order conversations continue the order flow before general intent classification
+  - Validates product matches against active shop products, quantity against current stock, asks missing details one by one, creates orders, clears pending state, and sends confirmation text
+  - Escalates safely when the requested product is unclear, missing from the catalog, out of stock, or order creation fails unexpectedly
+- Phase 8 — Conversation memory hardening
+  - Added recent-message memory fallback so order collection can resume even if `pending_order_state` is missing
+  - AI now detects recent order collection prompts, rebuilds collected details from the last conversation messages, and continues asking the next missing field instead of escalating
+- Phase 8 — Order detail extraction accuracy fix
+  - Tightened order extraction so plain customer replies only fill the field currently being asked
+  - Prevented address numbers like `Washington street 11` from overwriting quantity after quantity was already collected
+  - Added a Supabase schema reload notification to the Phase 8 migration so `create_chat_order` is visible to RPC calls after applying the migration
+- Supabase full project setup SQL
+  - Added `supabase/full_project_setup.sql`, a rerunnable consolidated SQL setup script covering project tables, indexes, RLS policies, storage buckets, triggers, and RPC functions from Phase 0 through Phase 8
+  - Added repair `alter table ... add column if not exists` blocks so partially-created existing tables can receive missing columns such as `messages.conversation_id`
+  - Made the pgvector similarity index best-effort with the unqualified `vector_cosine_ops` operator class so Supabase projects with different extension schema behavior do not fail the full setup
+  - Switched pgvector references from `extensions.vector` to unqualified `vector` with `public, extensions` search path for compatibility with Supabase projects where pgvector is installed outside the `extensions` schema
+- Live Supabase project rebuild
+  - Applied the consolidated `full_project_setup_rebuild` migration to the live `wappsync` Supabase project (`srlptgpuascbspwftjit`)
+  - Verified public tables, RLS, pgvector, app RPC functions, and `product-images` / `documents` storage buckets exist
+  - Applied `tighten_rebuild_function_permissions` to remove anonymous app RPC access, keep `create_chat_order` service-role only, and remove broad product image bucket listing
+- Phase 9 — Order Status via WhatsApp
+  - Added deterministic order-status handling in `lib/ai/order-status.ts`
+  - Looks up customers only by `shop_id` and WhatsApp `customerPhone`
+  - Fetches active orders only (`pending`, `confirmed`, `packed`, `shipped`) and never exposes another customer's orders
+  - Replies directly when there is one active order
+  - Asks the customer to choose when multiple active orders exist, then resumes from the recent conversation prompt when they reply with a number or order ID
+  - Replaced AI-generated order-status summaries with fixed status reply templates based only on structured database data
+- Phase 9 — Order status routing fix
+  - Moved deterministic order-status detection ahead of pending order-creation recovery so "What's my order status?" cannot be treated as an answer to an order creation prompt
+  - Clear stale `pending_order_state` when a customer switches to checking order status
+  - Tightened order-creation intent recovery so the bare word "order" no longer starts or resumes a buy flow by itself
+- Phase 10 — Escalation + Owner Alerts
+  - Added `lib/ai/escalation.ts` with deterministic escalation rules for human requests, complaints/refunds, order approval requests, repeated failed understanding, and owner alert sending
+  - Low-confidence AI classification now escalates immediately instead of trying another automated answer
+  - Missing product data now escalates with explicit reasoning so the conversation is marked for owner attention
+  - Webhook escalations mark conversations as `needs_attention`, pause AI automation, and send an owner WhatsApp alert to the shop contact number when configured
+  - Fixed inbound conversation upsert so it no longer resets existing escalated conversations back to `active`
+  - Webhook now skips AI replies when a conversation is paused or already marked `needs_attention`
+  - Dashboard resume actions now set conversations back to `active` and unpause automation; resolving a conversation does not restart AI by itself
+- Phase 11 — Settings and Controls
+  - Added migration `0007_phase11_settings_controls.sql` for shop automation controls
+  - Extended `shop_settings` with global automation toggle, owner alert phone, editable fallback message, and optional daily business hours
+  - Updated the consolidated `supabase/full_project_setup.sql` with the Phase 11 settings columns
+  - Added `lib/settings/automation.ts` to load automation settings, normalize fallback/time values, and evaluate business hours
+  - Expanded `/dashboard/settings` with automation on/off, owner alert number, fallback message editor, and business hours controls
+  - Updated settings save action to persist the new automation controls
+  - Webhook now skips AI when global automation is disabled and sends the editable fallback message outside business hours
+  - AI escalation and missing-data fallbacks now use the editable shop fallback message
+  - Owner escalation alerts now prefer `shop_settings.owner_alert_phone`, falling back to `shops.whatsapp_number`
+  - Applied live Supabase migration `phase11_settings_controls` to project `srlptgpuascbspwftjit` and verified all new `shop_settings` columns exist
+- Phase 12 — MVP Polish and Testing
+  - Added dashboard-wide loading skeleton at `app/dashboard/loading.tsx`
+  - Added dashboard-wide user-facing error boundary at `app/dashboard/error.tsx`
+  - Added `public.app_logs` via migration `0008_phase12_mvp_polish.sql` for basic webhook/AI/escalation debugging
+  - Added `lib/logging/app-log.ts` and wired webhook logs for unknown phone number IDs, inbound storage, skipped AI replies, business-hour fallback sends, AI decisions, owner alert attempts, and AI failures
+  - Updated `supabase/full_project_setup.sql` with the Phase 12 logging table, indexes, and RLS policy
+  - Added `supabase/seed_demo.sql` with rerunnable demo products, customer, and active order for the first shop
+  - Replaced the placeholder README with local setup, Supabase setup, WhatsApp setup, MVP test checklist, and operational notes
+  - Applied live Supabase migration `phase12_mvp_polish_logs` and verified `public.app_logs` exists with RLS enabled
+- Settings save duplicate-key fix
+  - Fixed `updateShopSettings` to use Supabase `upsert(..., { onConflict: "shop_id" })` for `shop_settings`
+  - Prevents duplicate key errors on the `shop_settings_shop_id_unique` constraint when saving settings for an existing shop
+- Product image upload RLS fix
+  - Product image Storage writes now use the trusted service-role client after the owner has been authenticated and scoped with `requireShop`
+  - Product image metadata updates the existing image row for a product when present, otherwise inserts a new row
+  - Old product image objects are removed after successful replacement to avoid orphaned Storage files
 
 ## In Progress
 
@@ -142,17 +211,15 @@ change.
 
 ## Next Up
 
-- Phase 8 — AI Order Creation Flow: multi-turn conversation, detail extraction, stock validation, order placement via WhatsApp
+- Owner testing of the complete MVP with real WhatsApp credentials and a real product catalog
 
 ## Open Questions
 
 - Owner needs to add `GEMINI_API_KEY` to `.env.local` for RAG embeddings (get it free from https://aistudio.google.com/apikey)
-- Owner needs to run migration `0004_phase7_rag.sql` in Supabase SQL Editor to enable pgvector and create document tables
-- Owner needs to run migration `0005_phase7_documents_storage.sql` in Supabase SQL Editor to create the `documents` storage bucket and storage policies
 - Owner needs to add `GROQ_API_KEY` to `.env.local` (get it from https://console.groq.com)
 - Owner needs to add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local` for the webhook to work (get it from Supabase Dashboard → Settings → API)
-- Owner needs to run migration `0003_phase4_whatsapp.sql` in Supabase SQL Editor before using WhatsApp features
 - For production, the app needs a public URL (e.g. via ngrok or deployment) for Meta to reach the webhook
+- Demo seed data was added as `supabase/seed_demo.sql` but was not run on the live project to avoid polluting the real shop data.
 
 ## Architecture Decisions
 
@@ -163,11 +230,15 @@ change.
 - AI uses **Groq with llama-3.3-70b-versatile** for both classification and response generation. Classification uses JSON structured output with low temperature (0.1) for determinism; response generation uses moderate temperature (0.6) for natural language.
 - AI **never invents product data** — it only responds based on structured data fetched from the database. If no products match, it says so clearly.
 - On low confidence or unknown intent, the AI **auto-escalates**: sends a polite holding message, marks the conversation as `needs_attention`, and pauses automation. Owner must resolve from the dashboard.
+- Escalation sends a WhatsApp alert to `shops.whatsapp_number` using the shop's configured WhatsApp Cloud API account. Alerts are skipped if the owner contact number is missing or matches the customer number.
 - Policy questions now use **RAG with pgvector** instead of auto-escalating. The AI searches uploaded document chunks by cosine similarity, retrieves the top 5 matches above 0.5 threshold, and generates a response from retrieved context. Only escalates if no relevant documents are found.
 - Embeddings use **Google Gemini gemini-embedding-001** (768 dimensions) — completely free with generous rate limits. Uses RETRIEVAL_QUERY task type for search queries and RETRIEVAL_DOCUMENT for document chunks. The IVFFlat index on pgvector provides fast approximate nearest neighbor search.
 - PDF processing is synchronous in MVP (runs during the upload request). For production, this should be moved to a background job/queue.
 - Document chunks use **800-character chunks with 150-character overlap** to balance context quality and embedding accuracy.
 - Document uploads use a private Supabase Storage bucket named `documents`. Object paths start with the owning `shop_id`, and storage policies enforce that only the owner of that shop can manage those files.
+- Pending WhatsApp order state is stored as structured JSON on `conversations.pending_order_state`. This keeps multi-turn collection tied to the existing one-conversation-per-customer model.
+- Order creation also uses recent conversation messages as a recovery memory layer, so the AI can continue an order flow after customer detail replies even if the explicit pending state was unavailable.
+- Chat-created orders use the `create_chat_order` security-definer RPC, scoped by `shop_id`, so webhook processing can atomically validate active products, deduct stock, upsert the customer, create order items, and calculate totals without relying on AI for critical data.
 
 ## Session Notes
 
@@ -196,3 +267,17 @@ change.
 - Dashboard sidebar navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
 - Landing page navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
 - Landing page light WhatsApp visual refresh passed lint with only the existing `scratch.ts` unused-variable warning, passed production build after enabling network access for Google font fetching, and served `/` with HTTP 200 on `http://localhost:3008/`.
+- Phase 8 AI order creation flow passed lint with only the existing `scratch.ts` unused-variable warning and passed production build after enabling network access for Google font fetching.
+- Phase 8 conversation memory hardening passed lint with only the existing `scratch.ts` unused-variable warning and passed production build after enabling network access for Google font fetching.
+- Phase 8 order detail extraction accuracy fix passed lint with only the existing `scratch.ts` unused-variable warning and passed production build after enabling network access for Google font fetching.
+- Added full project Supabase setup SQL for manual database repair/setup in Supabase SQL Editor.
+- Live Supabase project `srlptgpuascbspwftjit` was rebuilt successfully with the consolidated setup migration. Verification confirmed the expected app tables, RPCs, storage buckets, and pgvector extension are present.
+- Phase 9 order-status handling passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Phase 9 order-status routing fix passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Phase 10 escalation and owner alerts passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Phase 11 settings controls passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Live Supabase migration `phase11_settings_controls` applied successfully and verification confirmed `automation_enabled`, `owner_alert_phone`, `fallback_message`, `business_hours_enabled`, `business_hours_start`, `business_hours_end`, and `business_hours_timezone` on `public.shop_settings`.
+- Phase 12 MVP polish passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Live Supabase migration `phase12_mvp_polish_logs` applied successfully and verification confirmed `public.app_logs` exists with RLS enabled.
+- Settings save duplicate-key fix passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.
+- Product image upload RLS fix passed `npx tsc --noEmit`, passed `npm run lint` with only the existing `scratch.ts` unused-variable warning, and passed production build after enabling network access for Google font fetching.

@@ -2,12 +2,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { classifyIntent } from "./classify";
 import { generateReply } from "./respond";
-import { formatProductContext, formatOrderContext } from "./prompts";
+import { formatProductContext } from "./prompts";
+import { handleOrderCreation, shouldResumeOrderFlow } from "./order-flow";
+import {
+  handleOrderStatus,
+  isOrderStatusQuestion,
+  shouldResumeOrderStatusFlow,
+} from "./order-status";
+import { detectEscalationRule, escalationDecision } from "./escalation";
 import { searchDocuments, formatRAGContext } from "@/lib/rag/search";
+import { getAutomationSettings } from "@/lib/settings/automation";
 import type { AIDecision, ProductContext } from "./types";
-
-const ESCALATION_MESSAGE =
-  "Thanks for your message! I'm not sure I can help with that right now. Let me connect you with the shop owner who will get back to you shortly. 😊";
 
 const GREETING_REPLIES = [
   "Hi there! 👋 Welcome! How can I help you today?",
@@ -37,15 +42,74 @@ export async function handleInboundMessage(
   supabase: SupabaseClient,
   shopId: string,
   shopName: string,
+  conversationId: string,
   customerPhone: string,
   message: string,
 ): Promise<AIDecision> {
+  const settings = await getAutomationSettings(supabase, shopId);
+  const escalationRule = await detectEscalationRule(
+    supabase,
+    conversationId,
+    message,
+  );
+
+  if (escalationRule) {
+    return escalationDecision(
+      escalationRule,
+      "high",
+      settings.fallback_message,
+    );
+  }
+
+  if (isOrderStatusQuestion(message)) {
+    return handleOrderStatus(
+      supabase,
+      shopId,
+      conversationId,
+      customerPhone,
+      message,
+      "high",
+    );
+  }
+
+  if (await shouldResumeOrderFlow(supabase, conversationId, message)) {
+    return handleOrderCreation(
+      supabase,
+      shopId,
+      conversationId,
+      customerPhone,
+      message,
+      "high",
+    );
+  }
+
+  if (await shouldResumeOrderStatusFlow(supabase, conversationId, message)) {
+    return handleOrderStatus(
+      supabase,
+      shopId,
+      conversationId,
+      customerPhone,
+      message,
+      "high",
+    );
+  }
+
   // Step 1: Classify
   const classification = await classifyIntent(message);
 
   console.log(
     `[ai] Intent: ${classification.intent} | Confidence: ${classification.confidence} | Query: ${classification.extractedQuery}`,
   );
+
+  if (classification.confidence === "low") {
+    return {
+      intent: classification.intent,
+      confidence: "low",
+      reply: settings.fallback_message,
+      shouldEscalate: true,
+      reasoning: `Low confidence intent classification: ${classification.intent}`,
+    };
+  }
 
   // Step 2: Handle based on intent
   switch (classification.intent) {
@@ -73,22 +137,21 @@ export async function handleInboundMessage(
       return handleOrderStatus(
         supabase,
         shopId,
-        shopName,
+        conversationId,
         customerPhone,
         message,
         classification.confidence,
       );
 
     case "order_creation":
-      return {
-        intent: "order_creation",
-        confidence: classification.confidence,
-        reply:
-          "I'd love to help you place an order! 🛍️ Could you please tell me:\n\n1. Which product you'd like?\n2. How many?\n3. Your full name\n4. Your delivery address\n\nI'll get your order sorted right away!",
-        shouldEscalate: false,
-        reasoning:
-          "Order creation intent detected, asking for details. Full AI order creation is in Phase 8.",
-      };
+      return handleOrderCreation(
+        supabase,
+        shopId,
+        conversationId,
+        customerPhone,
+        message,
+        classification.confidence,
+      );
 
     case "policy_question":
       return handlePolicyQuestion(
@@ -147,6 +210,17 @@ async function handleProductQuestion(
       .limit(10);
 
     const allList = (allProducts ?? []) as ProductContext[];
+
+    if (allList.length === 0) {
+      return {
+        intent: "product_question",
+        confidence,
+        reply: (await getAutomationSettings(supabase, shopId)).fallback_message,
+        shouldEscalate: true,
+        reasoning: `Missing product data: no active products available for query "${extractedQuery}"`,
+      };
+    }
+
     const context = formatProductContext(allList);
 
     const reply = await generateReply(shopName, context, message, "product_question");
@@ -161,72 +235,28 @@ async function handleProductQuestion(
   }
 
   const context = formatProductContext(productList);
+
+  if (productList.length === 0) {
+    return {
+      intent: "product_question",
+      confidence,
+      reply: (await getAutomationSettings(supabase, shopId)).fallback_message,
+      shouldEscalate: true,
+      reasoning: `Missing product data: no active products matched query "${extractedQuery ?? "general"}"`,
+    };
+  }
+
   const reply = await generateReply(shopName, context, message, "product_question");
 
   return {
     intent: "product_question",
     confidence,
-    reply,
-    shouldEscalate: productList.length === 0,
-    reasoning: `Found ${productList.length} matching products for query "${extractedQuery ?? "general"}"`,
-  };
-}
-
-/**
- * Handle an order status query by looking up the customer's orders.
- */
-async function handleOrderStatus(
-  supabase: SupabaseClient,
-  shopId: string,
-  shopName: string,
-  customerPhone: string,
-  message: string,
-  confidence: "high" | "medium" | "low",
-): Promise<AIDecision> {
-  // Find the customer by phone
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("id")
-    .eq("shop_id", shopId)
-    .eq("phone", customerPhone)
-    .maybeSingle();
-
-  if (!customer) {
-    return {
-      intent: "order_status",
-      confidence,
-      reply:
-        "I couldn't find any orders linked to your phone number. 🤔 If you placed an order, please contact the shop owner for assistance!",
-      shouldEscalate: false,
-      reasoning: "No customer record found for this phone number",
-    };
-  }
-
-  // Get recent orders
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("id, status, total_amount, created_at")
-    .eq("shop_id", shopId)
-    .eq("customer_id", customer.id)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const orderList = (orders ?? []) as {
-    id: string;
-    status: string;
-    total_amount: number;
-    created_at: string;
-  }[];
-
-  const context = formatOrderContext(orderList);
-  const reply = await generateReply(shopName, context, message, "order_status");
-
-  return {
-    intent: "order_status",
-    confidence,
-    reply,
-    shouldEscalate: false,
-    reasoning: `Found ${orderList.length} orders for customer phone ${customerPhone}`,
+      reply,
+      shouldEscalate: productList.length === 0,
+      reasoning:
+        productList.length === 0
+          ? `Missing product data: no active products matched query "${extractedQuery ?? "general"}"`
+          : `Found ${productList.length} matching products for query "${extractedQuery ?? "general"}"`,
   };
 }
 
@@ -308,7 +338,7 @@ async function handleUnknownMessage(
   return {
     intent: "unknown",
     confidence: "low",
-    reply: ESCALATION_MESSAGE,
+    reply: (await getAutomationSettings(supabase, shopId)).fallback_message,
     shouldEscalate: true,
     reasoning: `Could not classify intent and no uploaded knowledge matched. Confidence: ${confidence}`,
   };

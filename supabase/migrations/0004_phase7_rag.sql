@@ -2,7 +2,8 @@
 -- Tables: documents, document_chunks (with pgvector)
 
 -- Enable pgvector extension
-create extension if not exists vector with schema extensions;
+create extension if not exists vector;
+set search_path = public, extensions;
 
 -- documents: uploaded PDF metadata
 create table if not exists public.documents (
@@ -26,7 +27,7 @@ create table if not exists public.document_chunks (
   document_id uuid not null references public.documents(id) on delete cascade,
   content text not null,
   chunk_index integer not null default 0,
-  embedding extensions.vector(768),
+  embedding vector(768),
   created_at timestamptz not null default now()
 );
 
@@ -40,10 +41,20 @@ create index if not exists document_chunks_shop_id_idx
 
 -- Vector similarity search index (IVFFlat for performance)
 -- Using cosine distance for Google Gemini embeddings
-create index if not exists document_chunks_embedding_idx
-  on public.document_chunks
-  using ivfflat (embedding extensions.vector_cosine_ops)
-  with (lists = 100);
+do $$
+begin
+  begin
+    create index if not exists document_chunks_embedding_idx
+      on public.document_chunks
+      using ivfflat (embedding vector_cosine_ops)
+      with (lists = 100);
+  exception
+    when undefined_object then
+      raise notice 'Skipping vector similarity index because vector_cosine_ops is not available in this Supabase project.';
+    when others then
+      raise notice 'Skipping vector similarity index: %', sqlerrm;
+  end;
+end $$;
 
 -- RLS
 alter table public.documents enable row level security;
@@ -91,7 +102,7 @@ create trigger set_documents_updated_at
 -- Vector search function for RAG
 create or replace function public.search_document_chunks(
   p_shop_id uuid,
-  p_query_embedding extensions.vector(768),
+  p_query_embedding vector(768),
   p_match_count integer default 5,
   p_match_threshold float default 0.7
 )

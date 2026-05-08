@@ -45,10 +45,14 @@ export async function toggleAutomation(formData: FormData) {
   }
 
   const paused = action === "pause";
+  const updates =
+    action === "resume"
+      ? { automation_paused: false, status: "active" }
+      : { automation_paused: paused };
 
   const { error } = await supabase
     .from("conversations")
-    .update({ automation_paused: paused })
+    .update(updates)
     .eq("id", conversationId)
     .eq("shop_id", shop.id);
 
@@ -77,9 +81,14 @@ export async function updateConversationStatus(formData: FormData) {
     throw new Error("Invalid status.");
   }
 
+  const updates =
+    status === "active"
+      ? { status, automation_paused: false }
+      : { status };
+
   const { error } = await supabase
     .from("conversations")
-    .update({ status })
+    .update(updates)
     .eq("id", conversationId)
     .eq("shop_id", shop.id);
 
