@@ -27,10 +27,15 @@ const pageStyle = {
   "--brand-primary-hover": "#1DA851",
   "--brand-soft": "#E6F9F0",
   "--brand-pale": "#F0FFF7",
+  "--brand-wash": "#F6FCF8",
+  "--brand-mist": "#DFF8EA",
   "--chat-outgoing": "#DCF8C6",
+  "--bg-page": "#F7FAF8",
+  "--bg-lift": "#FBFFFD",
   "--bg-secondary": "#F0F2F5",
   "--bg-muted": "#E9ECEF",
   "--text-primary": "#111B21",
+  "--text-deep-green": "#075E54",
   "--text-secondary": "#667781",
   "--text-muted": "#8696A0",
   "--border-soft": "#E0E6EA",
@@ -38,6 +43,18 @@ const pageStyle = {
   "--accent-blue": "#53BDEB",
   "--accent-yellow": "#FFE69A",
   "--accent-red": "#FF6B6B",
+} as CSSProperties;
+
+const heroSurfaceStyle = {
+  backgroundImage:
+    "linear-gradient(135deg, rgba(230,249,240,0.96) 0%, rgba(255,255,255,0.94) 46%, rgba(220,248,198,0.7) 100%), linear-gradient(120deg, rgba(37,211,102,0.12), transparent 38%, rgba(83,189,235,0.08) 78%, transparent)",
+  backgroundSize: "auto, 130% 130%",
+} as CSSProperties;
+
+const softSurfaceStyle = {
+  backgroundImage:
+    "linear-gradient(180deg, rgba(246,252,248,0.96), rgba(255,255,255,0.96)), linear-gradient(rgba(37,211,102,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(37,211,102,0.06) 1px, transparent 1px)",
+  backgroundSize: "auto, 52px 52px, 52px 52px",
 } as CSSProperties;
 
 const navLinks = [
@@ -215,7 +232,7 @@ function LandingButton({
 
 function Badge({ children, icon: Icon }: { children: ReactNode; icon?: Icon }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-soft)] bg-white px-3 py-1.5 text-sm font-semibold text-[var(--text-secondary)] shadow-[0_10px_26px_rgba(17,27,33,0.05)]">
+    <span className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-mist)] bg-[var(--brand-soft)] px-3 py-1.5 text-sm font-semibold text-[var(--text-deep-green)] shadow-[0_10px_26px_rgba(37,211,102,0.08)]">
       {Icon ? <Icon className="size-4 text-[var(--brand-primary-hover)]" /> : null}
       {children}
     </span>
@@ -257,13 +274,15 @@ function Section({
   id,
   children,
   className = "",
+  style,
 }: {
   id?: string;
   children: ReactNode;
   className?: string;
+  style?: CSSProperties;
 }) {
   return (
-    <section id={id} className={`px-5 py-20 sm:px-8 lg:px-10 ${className}`}>
+    <section id={id} className={`px-5 py-20 sm:px-8 lg:px-10 ${className}`} style={style}>
       <div className="mx-auto w-full max-w-7xl">{children}</div>
     </section>
   );
@@ -280,10 +299,10 @@ function FeatureCard({
 }) {
   return (
     <article
-      className="group rounded-lg border border-[var(--border-soft)] bg-white p-6 shadow-[0_20px_46px_rgba(17,27,33,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--brand-primary)]"
+      className="group rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-6 shadow-[0_20px_46px_rgba(17,27,33,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--brand-primary)] hover:shadow-[0_24px_54px_rgba(37,211,102,0.14)]"
       data-animate="card"
     >
-      <div className="mb-5 flex size-12 items-center justify-center rounded-lg border border-[var(--border-soft)] bg-[var(--brand-pale)] text-[var(--brand-primary-hover)] transition-colors group-hover:bg-[var(--brand-primary)] group-hover:text-white">
+      <div className="mb-5 flex size-12 items-center justify-center rounded-lg border border-[var(--brand-mist)] bg-[var(--brand-pale)] text-[var(--brand-primary-hover)] transition-colors group-hover:bg-[var(--brand-primary)] group-hover:text-white">
         <Icon className="size-6" />
       </div>
       <h3 className="text-lg font-bold leading-tight tracking-normal text-[var(--text-primary)]">
@@ -323,14 +342,14 @@ function ChatBubble({
 
 function LandingHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border-soft)] bg-white/90 shadow-[0_14px_42px_rgba(17,27,33,0.06)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[var(--brand-mist)] bg-[rgba(251,255,253,0.92)] shadow-[0_14px_42px_rgba(17,27,33,0.06)] backdrop-blur-xl">
       <nav
         aria-label="Primary navigation"
         className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"
       >
         <BrandLogo />
 
-        <div className="hidden items-center gap-1 rounded-full border border-[var(--border-soft)] bg-white p-1 shadow-[0_10px_28px_rgba(17,27,33,0.05)] md:flex">
+        <div className="hidden items-center gap-1 rounded-full border border-[var(--brand-mist)] bg-white/90 p-1 shadow-[0_10px_28px_rgba(17,27,33,0.05)] md:flex">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -390,7 +409,11 @@ function LandingHeader() {
 function HeroMockup() {
   return (
     <div className="relative min-h-[560px]" data-animate="hero-visual">
-      <div className="absolute left-0 top-10 w-[82%] max-w-[520px] rounded-lg border border-[var(--border-soft)] bg-white p-4 shadow-[0_34px_90px_rgba(17,27,33,0.16)]">
+      <div className="absolute inset-x-6 top-20 h-80 rounded-lg border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.68),rgba(230,249,240,0.3))] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_34px_90px_rgba(37,211,102,0.12)]" />
+      <div
+        className="absolute left-0 top-10 w-[82%] max-w-[520px] rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.14)]"
+        data-hero-float
+      >
         <div className="mb-4 flex items-center justify-between border-b border-[var(--border-soft)] pb-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[var(--text-primary)] text-white">
@@ -418,7 +441,7 @@ function HeroMockup() {
           ].map(([value, label]) => (
             <div
               key={label}
-              className="rounded-lg border border-[var(--border-soft)] bg-[var(--brand-pale)] p-3"
+              className="rounded-lg border border-[var(--brand-mist)] bg-[var(--brand-pale)] p-3"
             >
               <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
               <p className="mt-1 text-xs text-[var(--text-secondary)]">{label}</p>
@@ -430,7 +453,7 @@ function HeroMockup() {
           {dashboardRows.map(([name, message, status, tone]) => (
             <div
               key={name}
-              className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[var(--border-soft)] p-3"
+              className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-[var(--border-soft)] bg-white/82 p-3"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-[var(--text-primary)]">
@@ -454,7 +477,10 @@ function HeroMockup() {
         </div>
       </div>
 
-      <div className="absolute bottom-4 right-0 w-[78%] max-w-[420px] rounded-lg border border-[var(--border-soft)] bg-[var(--bg-secondary)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.18)]">
+      <div
+        className="absolute bottom-4 right-0 w-[78%] max-w-[420px] rounded-lg border border-[var(--brand-mist)] bg-[var(--brand-soft)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.16)]"
+        data-hero-float
+      >
         <div className="mb-4 flex items-center gap-3 rounded-lg bg-white p-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-[var(--brand-primary)] text-white">
             <MessageChatCircle className="size-5" />
@@ -480,7 +506,10 @@ function HeroMockup() {
         </div>
       </div>
 
-      <div className="absolute right-4 top-0 hidden w-56 rounded-lg border border-[var(--border-soft)] bg-white p-4 shadow-[0_24px_60px_rgba(17,27,33,0.14)] sm:block">
+      <div
+        className="absolute right-4 top-0 hidden w-56 rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_24px_60px_rgba(17,27,33,0.12)] sm:block"
+        data-hero-float
+      >
         <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
           <ZapFast className="size-4 text-[var(--brand-primary-hover)]" />
           Automation score
@@ -496,10 +525,34 @@ function HeroMockup() {
   );
 }
 
+function HeroBackdrop() {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="landing-hero-grid absolute inset-0" data-hero-ambient />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-primary)]/40 to-transparent" />
+      <div className="absolute left-[7%] top-28 hidden h-[380px] w-[42%] -skew-x-12 rounded-lg border border-[var(--brand-mist)]/70 bg-white/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] lg:block" />
+      <div className="absolute right-[3%] top-16 hidden h-[440px] w-[38%] skew-x-6 rounded-lg border border-[var(--brand-mist)]/70 bg-[var(--brand-pale)]/28 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] lg:block" />
+      <div className="landing-hero-signal absolute left-[8%] top-24 hidden w-[46%] lg:block">
+        <span data-hero-pulse />
+        <span data-hero-pulse />
+        <span data-hero-pulse />
+      </div>
+      <div className="landing-hero-signal landing-hero-signal-reverse absolute right-[6%] top-36 hidden w-[42%] lg:block">
+        <span data-hero-pulse />
+        <span data-hero-pulse />
+      </div>
+    </div>
+  );
+}
+
 function HeroSection() {
   return (
-    <section className="overflow-hidden px-5 pb-14 pt-14 sm:px-8 lg:px-10 lg:pb-20 lg:pt-18">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+    <section
+      className="relative isolate overflow-hidden border-b border-[var(--brand-mist)] px-5 pb-14 pt-14 sm:px-8 lg:px-10 lg:pb-20 lg:pt-18"
+      style={heroSurfaceStyle}
+    >
+      <HeroBackdrop />
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div data-animate="hero-copy">
           <Badge icon={Star06}>WhatsApp automation for small online shops</Badge>
           <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-tight tracking-normal text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
@@ -523,7 +576,7 @@ function HeroSection() {
             {proofPoints.map((point) => (
               <span
                 key={point}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--brand-pale)] px-3 py-1.5 text-sm font-semibold text-[var(--text-secondary)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--brand-mist)] bg-white/78 px-3 py-1.5 text-sm font-semibold text-[var(--text-deep-green)] shadow-[0_8px_18px_rgba(37,211,102,0.08)] backdrop-blur"
               >
                 <CheckCircle className="size-4 text-[var(--brand-primary-hover)]" />
                 {point}
@@ -534,11 +587,11 @@ function HeroSection() {
         <HeroMockup />
       </div>
 
-      <div className="mx-auto mt-10 grid w-full max-w-7xl gap-4 sm:grid-cols-3">
+      <div className="relative z-10 mx-auto mt-10 grid w-full max-w-7xl gap-4 sm:grid-cols-3">
         {heroStats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-lg border border-[var(--border-soft)] bg-white p-5 shadow-[0_16px_42px_rgba(17,27,33,0.05)]"
+            className="rounded-lg border border-[var(--brand-mist)] bg-[rgba(251,255,253,0.88)] p-5 shadow-[0_16px_42px_rgba(17,27,33,0.05)] backdrop-blur"
             data-animate="stat"
           >
             <p className="text-3xl font-bold text-[var(--text-primary)]">
@@ -574,7 +627,7 @@ function PainSection() {
 
 function FeatureSection() {
   return (
-    <Section id="features">
+    <Section id="features" className="bg-[var(--bg-page)]" style={softSurfaceStyle}>
       <SectionHeader
         eyebrow="Features"
         title="Built around the real shop workflow"
@@ -601,10 +654,10 @@ function WorkflowSection() {
         {workflow.map((step, index) => (
           <article
             key={step.title}
-            className="rounded-lg border border-[var(--border-soft)] bg-white p-6 shadow-[0_18px_45px_rgba(17,27,33,0.06)]"
+            className="rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-6 shadow-[0_18px_45px_rgba(17,27,33,0.06)]"
             data-animate="card"
           >
-            <div className="mb-5 flex size-11 items-center justify-center rounded-lg bg-[var(--text-primary)] text-base font-bold text-white">
+            <div className="mb-5 flex size-11 items-center justify-center rounded-lg bg-[var(--text-deep-green)] text-base font-bold text-white">
               {index + 1}
             </div>
             <h3 className="text-lg font-bold leading-tight text-[var(--text-primary)]">
@@ -623,11 +676,11 @@ function WorkflowSection() {
 function DashboardPreview() {
   return (
     <div
-      className="overflow-hidden rounded-lg border border-[var(--border-soft)] bg-white shadow-[0_30px_80px_rgba(17,27,33,0.12)]"
+      className="overflow-hidden rounded-lg border border-[var(--brand-mist)] bg-white shadow-[0_30px_80px_rgba(17,27,33,0.12)]"
       data-animate="showcase"
     >
       <div className="grid min-h-[620px] lg:grid-cols-[220px_minmax(240px,300px)_minmax(0,1fr)_280px]">
-        <aside className="border-b border-[var(--border-soft)] bg-[var(--text-primary)] p-5 text-white lg:border-b-0 lg:border-r">
+        <aside className="border-b border-[var(--border-soft)] bg-[var(--text-deep-green)] p-5 text-white lg:border-b-0 lg:border-r">
           <BrandLogo inverse />
           <div className="mt-8 space-y-2">
             {[
@@ -655,7 +708,7 @@ function DashboardPreview() {
           </div>
         </aside>
 
-        <div className="border-b border-[var(--border-soft)] bg-[var(--bg-secondary)] p-4 lg:border-b-0 lg:border-r">
+        <div className="border-b border-[var(--border-soft)] bg-[var(--brand-wash)] p-4 lg:border-b-0 lg:border-r">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h3 className="text-lg font-bold text-[var(--text-primary)]">Inbox</h3>
             <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[var(--text-secondary)]">
@@ -692,7 +745,7 @@ function DashboardPreview() {
           </div>
         </div>
 
-        <div className="min-w-0 bg-[var(--bg-secondary)] p-4">
+        <div className="min-w-0 bg-[var(--brand-wash)] p-4">
           <div className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-white p-4">
             <div className="min-w-0">
               <p className="truncate font-bold text-[var(--text-primary)]">
@@ -755,7 +808,7 @@ function DashboardPreview() {
 
 function ShowcaseSection() {
   return (
-    <Section id="dashboard-preview" className="bg-[var(--bg-secondary)]">
+    <Section id="dashboard-preview" className="bg-[var(--bg-secondary)]" style={softSurfaceStyle}>
       <SectionHeader
         eyebrow="Dashboard"
         title="A calm command center for busy WhatsApp sellers"
@@ -768,7 +821,7 @@ function ShowcaseSection() {
 
 function PricingSection() {
   return (
-    <Section id="pricing">
+    <Section id="pricing" className="bg-[var(--bg-page)]">
       <SectionHeader
         eyebrow="Pricing"
         title="Start simple, prove the workflow, then scale"
@@ -779,7 +832,7 @@ function PricingSection() {
         className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[0.9fr_1.1fr]"
         data-animate="section"
       >
-        <div className="rounded-lg border border-[var(--border-soft)] bg-[var(--text-primary)] p-8 text-white shadow-[0_28px_70px_rgba(17,27,33,0.16)]">
+        <div className="rounded-lg border border-[var(--text-deep-green)] bg-[var(--text-deep-green)] p-8 text-white shadow-[0_28px_70px_rgba(17,27,33,0.16)]">
           <Badge icon={ZapFast}>Early access</Badge>
           <h3 className="mt-6 text-3xl font-bold leading-tight">
             Built for shops ready to automate replies now
@@ -793,7 +846,7 @@ function PricingSection() {
             <ArrowRight className="size-4" />
           </LandingButton>
         </div>
-        <div className="rounded-lg border border-[var(--border-soft)] bg-white p-8 shadow-[0_24px_60px_rgba(17,27,33,0.08)]">
+        <div className="rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-8 shadow-[0_24px_60px_rgba(17,27,33,0.08)]">
           <p className="text-sm font-bold uppercase tracking-normal text-[var(--brand-primary-hover)]">
             Included in starter
           </p>
@@ -836,7 +889,7 @@ function FaqSection() {
         {faqs.map(([question, answer]) => (
           <article
             key={question}
-            className="rounded-lg border border-[var(--border-soft)] bg-white p-6 shadow-[0_16px_38px_rgba(17,27,33,0.05)]"
+            className="rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-6 shadow-[0_16px_38px_rgba(17,27,33,0.05)]"
             data-animate="card"
           >
             <div className="flex items-start gap-3">
@@ -859,7 +912,7 @@ function FaqSection() {
 
 function FinalCta() {
   return (
-    <section className="bg-[var(--text-primary)] px-5 py-20 text-white sm:px-8 lg:px-10">
+    <section className="bg-[var(--text-deep-green)] px-5 py-20 text-white sm:px-8 lg:px-10">
       <div
         className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-8 lg:flex-row lg:items-center"
         data-animate="section"
@@ -895,7 +948,7 @@ function LandingFooter() {
   ];
 
   return (
-    <footer className="border-t border-[var(--border-soft)] bg-white px-5 py-10 sm:px-8 lg:px-10">
+    <footer className="border-t border-[var(--brand-mist)] bg-[var(--bg-lift)] px-5 py-10 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 md:flex-row md:items-center md:justify-between">
         <div>
           <BrandLogo />
@@ -918,7 +971,7 @@ function LandingFooter() {
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white" style={pageStyle}>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bg-page)]" style={pageStyle}>
       <LandingAnimations />
       <LandingHeader />
       <HeroSection />

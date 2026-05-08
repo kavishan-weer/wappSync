@@ -32,10 +32,13 @@ export function LandingAnimations() {
         document.querySelectorAll<HTMLElement>("[data-animate='hero-copy'] > *"),
       );
       const floatingChildren = Array.from(
-        document.querySelectorAll<HTMLElement>("[data-animate='hero-visual'] > div"),
+        document.querySelectorAll<HTMLElement>("[data-hero-float]"),
+      );
+      const heroAmbientItems = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-hero-ambient], [data-hero-pulse]"),
       );
 
-      [...heroChildren, ...floatingChildren].forEach((item) => {
+      [...heroChildren, ...floatingChildren, ...heroAmbientItems].forEach((item) => {
         item.style.removeProperty("opacity");
         item.style.removeProperty("visibility");
         item.style.removeProperty("transform");
@@ -73,8 +76,14 @@ export function LandingAnimations() {
         "[data-animate='hero-visual']",
       );
       const heroFloatItems = heroVisual
-        ? Array.from(heroVisual.querySelectorAll<HTMLElement>(":scope > div"))
+        ? Array.from(heroVisual.querySelectorAll<HTMLElement>("[data-hero-float]"))
         : [];
+      const heroAmbient = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-hero-ambient]"),
+      );
+      const heroPulseItems = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-hero-pulse]"),
+      );
       const sectionItems = Array.from(
         document.querySelectorAll<HTMLElement>("[data-animate='section']"),
       );
@@ -90,10 +99,28 @@ export function LandingAnimations() {
           ...animatedItems,
           ...heroCopyItems,
           ...heroFloatItems,
+          ...heroAmbient,
+          ...heroPulseItems,
           ...counters,
         ]);
-        gsap.set([...animatedItems, ...heroCopyItems, ...heroFloatItems], {
-          clearProps: "all",
+        gsap.set(
+          [
+            ...animatedItems,
+            ...heroCopyItems,
+            ...heroFloatItems,
+            ...heroAmbient,
+            ...heroPulseItems,
+          ],
+          {
+            clearProps: "all",
+          },
+        );
+
+        gsap.from(heroAmbient, {
+          opacity: 0,
+          duration: 1.1,
+          ease: "power2.out",
+          clearProps: "opacity,visibility,transform",
         });
 
         gsap.from(heroCopyItems, {
@@ -117,14 +144,40 @@ export function LandingAnimations() {
           });
         }
 
+        gsap.from(heroFloatItems, {
+          opacity: 0,
+          y: 28,
+          scale: 0.98,
+          duration: 0.82,
+          ease: "power3.out",
+          stagger: 0.1,
+          clearProps: "opacity,visibility,transform",
+        });
+
         gsap.to(heroFloatItems, {
-          y: (index) => [10, -12, 8][index] ?? 0,
-          duration: 3.8,
+          y: (index) => [8, -10, 7][index] ?? 0,
+          rotate: (index) => [0.25, -0.2, 0.18][index] ?? 0,
+          duration: 4.4,
           repeat: -1,
           yoyo: true,
           ease: "sine.inOut",
           stagger: 0.16,
         });
+
+        gsap.fromTo(
+          heroPulseItems,
+          { scaleX: 0.18, opacity: 0 },
+          {
+            scaleX: 1,
+            opacity: 0.62,
+            transformOrigin: "left center",
+            duration: 1.45,
+            repeat: -1,
+            repeatDelay: 1.6,
+            ease: "power2.out",
+            stagger: 0.22,
+          },
+        );
 
         sectionItems.forEach((item) => {
           gsap.from(item, {
