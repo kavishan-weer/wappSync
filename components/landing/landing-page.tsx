@@ -47,8 +47,8 @@ const pageStyle = {
 
 const heroSurfaceStyle = {
   backgroundImage:
-    "linear-gradient(135deg, rgba(230,249,240,0.96) 0%, rgba(255,255,255,0.94) 46%, rgba(220,248,198,0.7) 100%), linear-gradient(120deg, rgba(37,211,102,0.12), transparent 38%, rgba(83,189,235,0.08) 78%, transparent)",
-  backgroundSize: "auto, 130% 130%",
+    "linear-gradient(135deg, rgba(230,249,240,0.94) 0%, rgba(255,255,255,0.92) 48%, rgba(220,248,198,0.62) 100%), linear-gradient(rgba(37,211,102,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(37,211,102,0.08) 1px, transparent 1px)",
+  backgroundSize: "auto, 44px 44px, 44px 44px",
 } as CSSProperties;
 
 const softSurfaceStyle = {
@@ -409,11 +409,8 @@ function LandingHeader() {
 function HeroMockup() {
   return (
     <div className="relative min-h-[560px]" data-animate="hero-visual">
-      <div className="absolute inset-x-6 top-20 h-80 rounded-lg border border-white/80 bg-[linear-gradient(135deg,rgba(255,255,255,0.68),rgba(230,249,240,0.3))] shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_34px_90px_rgba(37,211,102,0.12)]" />
-      <div
-        className="absolute left-0 top-10 w-[82%] max-w-[520px] rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.14)]"
-        data-hero-float
-      >
+      <div className="absolute inset-x-6 top-20 h-80 rounded-[48px] border border-[var(--brand-mist)] bg-[var(--brand-soft)]/60 blur-2xl" />
+      <div className="absolute left-0 top-10 w-[82%] max-w-[520px] rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.14)]">
         <div className="mb-4 flex items-center justify-between border-b border-[var(--border-soft)] pb-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[var(--text-primary)] text-white">
@@ -477,10 +474,7 @@ function HeroMockup() {
         </div>
       </div>
 
-      <div
-        className="absolute bottom-4 right-0 w-[78%] max-w-[420px] rounded-lg border border-[var(--brand-mist)] bg-[var(--brand-soft)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.16)]"
-        data-hero-float
-      >
+      <div className="absolute bottom-4 right-0 w-[78%] max-w-[420px] rounded-lg border border-[var(--brand-mist)] bg-[var(--brand-soft)] p-4 shadow-[0_34px_90px_rgba(17,27,33,0.16)]">
         <div className="mb-4 flex items-center gap-3 rounded-lg bg-white p-3">
           <div className="flex size-10 items-center justify-center rounded-full bg-[var(--brand-primary)] text-white">
             <MessageChatCircle className="size-5" />
@@ -506,10 +500,7 @@ function HeroMockup() {
         </div>
       </div>
 
-      <div
-        className="absolute right-4 top-0 hidden w-56 rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_24px_60px_rgba(17,27,33,0.12)] sm:block"
-        data-hero-float
-      >
+      <div className="absolute right-4 top-0 hidden w-56 rounded-lg border border-[var(--brand-mist)] bg-[var(--bg-lift)] p-4 shadow-[0_24px_60px_rgba(17,27,33,0.12)] sm:block">
         <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
           <ZapFast className="size-4 text-[var(--brand-primary-hover)]" />
           Automation score
@@ -525,34 +516,13 @@ function HeroMockup() {
   );
 }
 
-function HeroBackdrop() {
-  return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="landing-hero-grid absolute inset-0" data-hero-ambient />
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--brand-primary)]/40 to-transparent" />
-      <div className="absolute left-[7%] top-28 hidden h-[380px] w-[42%] -skew-x-12 rounded-lg border border-[var(--brand-mist)]/70 bg-white/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] lg:block" />
-      <div className="absolute right-[3%] top-16 hidden h-[440px] w-[38%] skew-x-6 rounded-lg border border-[var(--brand-mist)]/70 bg-[var(--brand-pale)]/28 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] lg:block" />
-      <div className="landing-hero-signal absolute left-[8%] top-24 hidden w-[46%] lg:block">
-        <span data-hero-pulse />
-        <span data-hero-pulse />
-        <span data-hero-pulse />
-      </div>
-      <div className="landing-hero-signal landing-hero-signal-reverse absolute right-[6%] top-36 hidden w-[42%] lg:block">
-        <span data-hero-pulse />
-        <span data-hero-pulse />
-      </div>
-    </div>
-  );
-}
-
 function HeroSection() {
   return (
     <section
-      className="relative isolate overflow-hidden border-b border-[var(--brand-mist)] px-5 pb-14 pt-14 sm:px-8 lg:px-10 lg:pb-20 lg:pt-18"
+      className="overflow-hidden border-b border-[var(--brand-mist)] px-5 pb-14 pt-14 sm:px-8 lg:px-10 lg:pb-20 lg:pt-18"
       style={heroSurfaceStyle}
     >
-      <HeroBackdrop />
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div data-animate="hero-copy">
           <Badge icon={Star06}>WhatsApp automation for small online shops</Badge>
           <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-tight tracking-normal text-[var(--text-primary)] sm:text-5xl lg:text-6xl">
@@ -587,7 +557,7 @@ function HeroSection() {
         <HeroMockup />
       </div>
 
-      <div className="relative z-10 mx-auto mt-10 grid w-full max-w-7xl gap-4 sm:grid-cols-3">
+      <div className="mx-auto mt-10 grid w-full max-w-7xl gap-4 sm:grid-cols-3">
         {heroStats.map((stat) => (
           <div
             key={stat.label}

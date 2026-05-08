@@ -135,11 +135,6 @@ change.
   - Reduced the overly white feel with a pale green page surface, WhatsApp-style grid wash in the hero, and warmer section backgrounds
   - Updated landing cards, badges, hero stats, dashboard mockup, pricing, FAQ, footer, and dark CTA accents to use light WhatsApp-inspired green surfaces
   - Preserved the light theme, existing landing page content, CTAs, animations, and route structure
-- Landing Page — hero background and animation polish
-  - Added a layered hero backdrop with animated grid drift, angled glass panels, and WhatsApp-style signal lines
-  - Scoped hero mockup float animations to explicit panel hooks so background layers no longer get unintended motion
-  - Added GSAP entrance and pulse timing for hero ambience while preserving reduced-motion cleanup behavior
-  - Kept existing hero copy, CTAs, route structure, and business messaging unchanged
 
 ## In Progress
 
@@ -201,4 +196,3 @@ change.
 - Dashboard sidebar navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
 - Landing page navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
 - Landing page light WhatsApp visual refresh passed lint with only the existing `scratch.ts` unused-variable warning, passed production build after enabling network access for Google font fetching, and served `/` with HTTP 200 on `http://localhost:3008/`.
-- Landing page hero polish passed lint with only the existing `scratch.ts` unused-variable warning, passed production build after enabling network access for Google font fetching, cleared the extra Node listener on port `3012`, and confirmed `/` returns HTTP 200 on the existing `http://127.0.0.1:3000/` server.
