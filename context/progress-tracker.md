@@ -127,6 +127,10 @@ change.
 - Dashboard sidebar navigation visibility fix
   - Updated the dashboard GSAP helper to rerun on App Router pathname changes
   - Added stale-animation cancellation and cleanup of inline opacity, visibility, and transform styles so client-side sidebar navigation does not leave page sections hidden
+- Landing page navigation visibility fix
+  - Updated the landing page GSAP helper to rerun on App Router pathname changes
+  - Replaced `autoAlpha` reveal animations with opacity-based reveals and explicit cleanup of opacity, visibility, and transform styles
+  - Added stale-animation cancellation, ScrollTrigger cleanup, counter reset, and floating hero cleanup so returning to the landing page through client navigation renders fully
 
 ## In Progress
 
@@ -186,3 +190,4 @@ change.
 - Targeted lint across changed dashboard files passed. Full `npm run lint` exits successfully with only the existing untracked `scratch.ts` unused-variable warning.
 - Local unauthenticated route checks on `http://127.0.0.1:3007` confirmed `/dashboard`, `/dashboard/products`, `/dashboard/orders`, `/dashboard/documents`, `/dashboard/settings`, and `/dashboard/settings/whatsapp` all return 307 redirects to the correct login URLs.
 - Dashboard sidebar navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
+- Landing page navigation visibility fix passed targeted lint, full lint, and production build after enabling network access for Google font fetching.
