@@ -62,25 +62,7 @@ supabase/seed_demo.sql
 https://your-public-url.com/api/whatsapp/webhook
 ```
 
-5. Use the same verify token in Meta and the dashboard.
 
-For local testing, expose the app with a public tunnel and set `NEXT_PUBLIC_APP_URL` to that tunnel URL.
-
-## MVP Test Checklist
-
-- Sign up and create a shop.
-- Add at least one active product with stock.
-- Configure WhatsApp credentials and test the connection.
-- Send a customer WhatsApp message asking about a product.
-- Place an order through WhatsApp and verify stock decreases.
-- Ask for order status from the same customer number.
-- Ask for a human, refund, or complaint and verify:
-  - AI sends the fallback message.
-  - Conversation appears under `Attention`.
-  - AI automation is paused.
-  - Owner receives an alert when an alert number is configured.
-- Resolve the chat in the inbox.
-- Resume automation and verify AI replies again.
 
 ## Operational Notes
 
